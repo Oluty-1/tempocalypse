@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TEMPOCALYPSE | The End is Near</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=VT323&family=Orbitron:wght@400;700;900&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <!-- LOADING SCREEN -->
+    <div id="loading-screen">
+        <div id="typewriter-text"><span id="typed"></span><span class="cursor"></span></div>
+    </div>
+
+    <div id="page-wrap">
+        <!-- TICKER TAPE -->
+        <div id="ticker-wrap">
+            <div id="ticker-inner">
+                <span>⚠ MARKETS: DECEASED</span>
+                <span class="sep">//</span>
+                <span>BULLS: EXTINCT SINCE EPOCH 4499</span>
+                <span class="sep">//</span>
+                <span>RADIATION: 87% AND RISING</span>
+                <span class="sep">//</span>
+                <span>TEMPO NETWORK: ONLINE (SOMEHOW)</span>
+                <span class="sep">//</span>
+                <span>FIAT BURNED. STAY BEARISH.</span>
+                <span class="sep">//</span>
+                <span>NEW SCRAP DETECTED IN SECTOR 7</span>
+                <span class="sep">//</span>
+                <span>MINT OR PERISH</span>
+                <span class="sep">//</span>
+                <span>⚠ MARKETS: DECEASED</span>
+                <span class="sep">//</span>
+                <span>BULLS: EXTINCT SINCE EPOCH 4499</span>
+                <span class="sep">//</span>
+                <span>RADIATION: 87% AND RISING</span>
+                <span class="sep">//</span>
+                <span>TEMPO NETWORK: ONLINE (SOMEHOW)</span>
+                <span class="sep">//</span>
+                <span>FIAT BURNED. STAY BEARISH.</span>
+                <span class="sep">//</span>
+                <span>NEW SCRAP DETECTED IN SECTOR 7</span>
+                <span class="sep">//</span>
+                <span>MINT OR PERISH</span>
+                <span class="sep">//</span>
+            </div>
+        </div>
+
+        <div id="main">
+            <!-- HERO -->
+            <div class="hero">
+                <div class="pfp-wrap">
+                    <div class="radiation-ring"></div>
+                    <div class="radiation-ring"></div>
+                    <div class="radiation-ring"></div>
+                    <div class="pfp-img" id="hero-img"></div>
+                </div>
+
+                <div class="glitch-wrap">
+                    <h1 data-text="TEMPOCALYPSE">TEMPOCALYPSE</h1>
+                </div>
+                <p class="hero-sub">The World Burned. We Stayed Bearish.</p>
+                <p class="hero-desc">
+                    Welcome to the Wasteland. 3,333 scavengers, rusted bots, and doom-scrollers documenting the end of
+                    days — permanently — on the Tempo Network.
+                </p>
+                <div class="btn-group">
+                    <button class="btn danger">[ MINT YOUR SCRAP ]</button>
+                    <button class="btn"
+                        onclick="document.getElementById('doom-scroll').scrollIntoView({behavior:'smooth'})">[ READ THE
+                        DOOM SCROLL ]</button>
+                </div>
+            </div>
+
+            <!-- COUNTDOWN -->
+            <div class="countdown-section">
+                <div class="countdown-label">▶ TIME SINCE MARKET DEATH ◀</div>
+                <div class="countdown-digits">
+                    <div class="cd-block">
+                        <span class="cd-num" id="cd-days">000</span>
+                        <span class="cd-label">DAYS</span>
+                    </div>
+                    <div class="cd-sep">:</div>
+                    <div class="cd-block">
+                        <span class="cd-num" id="cd-hours">00</span>
+                        <span class="cd-label">HOURS</span>
+                    </div>
+                    <div class="cd-sep">:</div>
+                    <div class="cd-block">
+                        <span class="cd-num" id="cd-mins">00</span>
+                        <span class="cd-label">MINS</span>
+                    </div>
+                    <div class="cd-sep">:</div>
+                    <div class="cd-block">
+                        <span class="cd-num" id="cd-secs">00</span>
+                        <span class="cd-label">SECS</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- DOOM SCROLL -->
+            <div id="doom-scroll" class="section-box">
+                <div class="section-label">// TRANSMISSION 001 //</div>
+                <h3>&gt; The Doom Scroll_</h3>
+                <p>They told us it was just a dip. They printed more. They told us inflation was transitory. They lied
+                    again. When the charts finally hit zero — absolute, irreversible zero — the skies turned toxic
+                    green, the power grids screamed, and the fiat burned spectacularly in the streets.</p>
+                <p>Now, only the toughest, rustiest, and most unhinged survive. We aren't here to rebuild society. We
+                    are here to hoard scavenged tech, flex survival gear, and document the collapse on the immutable
+                    Tempo Network. Ledgers don't lie. People do. Embrace the doom.</p>
+
+                <div class="rad-bar-wrap">
+                    <div class="rad-bar-label">
+                        <span>RADIATION LEVEL</span>
+                        <span>87% — CRITICAL</span>
+                    </div>
+                    <div class="rad-bar-track">
+                        <div class="rad-bar-fill"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SIGNAL LOG -->
+            <div class="section-box">
+                <div class="section-label">// LIVE NETWORK FEED //</div>
+                <h3>&gt; Signal Log_</h3>
+                <div class="signal-log" id="signal-log">
+                    <span class="log-line"><span class="ts">[04:17:32]</span> <span class="ok">OK</span> — Tempo node
+                        0x4F7A confirmed operational</span>
+                    <span class="log-line"><span class="ts">[04:17:38]</span> <span class="warn">WARN</span> — Geiger
+                        counter exceeding safe thresholds in Sector 7</span>
+                    <span class="log-line"><span class="ts">[04:17:45]</span> <span class="err">ERR</span> — NASDAQ
+                        feed: connection refused (host destroyed)</span>
+                    <span class="log-line"><span class="ts">[04:17:51]</span> <span class="ok">OK</span> — 3,291
+                        Wastelanders minted and accounted for</span>
+                    <span class="log-line"><span class="ts">[04:18:02]</span> <span class="warn">WARN</span> — Bull
+                        sighting reported near Zone 3; unconfirmed, possibly a goat</span>
+                    <span class="log-line"><span class="ts">[04:18:11]</span> <span class="ok">OK</span> — Doom scroll
+                        block 8,847,221 written to chain</span>
+                    <span class="log-line"><span class="ts">[04:18:19]</span> <span class="err">ERR</span> — Fiat
+                        reserves: 0.00 USD. As expected.</span>
+                    <span class="log-line"><span class="ts">[04:18:24]</span> <span class="ok">OK</span> — Scrap cache
+                        flushed. Hoarding protocols engaged.</span>
+                </div>
+            </div>
+
+            <!-- STATS -->
+            <div class="section-box">
+                <div class="section-label">// COLLECTION DATA //</div>
+                <h3>&gt; Scavenger Stats_</h3>
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <span class="stat-label">SUPPLY</span>
+                        <span class="stat-value">3,333 Units</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">NETWORK</span>
+                        <span class="stat-value">Tempo Network</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">UNIQUE TRAITS</span>
+                        <span class="stat-value">247 Variants</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">MISSION</span>
+                        <span class="stat-value">Perma-bear Survival</span>
+                    </div>
+                </div>
+
+                <div style="margin-top: 28px;">
+                    <span class="stat-label" style="margin-bottom: 12px; display: block;">TRAIT RARITY</span>
+                    <div class="trait-grid">
+                        <span class="trait-pill">Rusted Mask</span>
+                        <span class="trait-pill">Broken Chart</span>
+                        <span class="trait-pill">Depleted Battery</span>
+                        <span class="trait-pill">Scrap Armor</span>
+                        <span class="trait-pill rare">Toxic Canteen ✦</span>
+                        <span class="trait-pill rare">Signal Jammer ✦</span>
+                        <span class="trait-pill rare">Dead Wallet ✦</span>
+                        <span class="trait-pill legendary">Zero Day Relic ★</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- FOOTER -->
+            <footer>
+                <div class="footer-logo">TEMPOCALYPSE</div>
+                <div class="footer-links">
+                    <a href="#">Twitter</a>
+                    <a href="#">Discord</a>
+                    <a href="#">Tempo Explorer</a>
+                    <a href="#">Whitepaper</a>
+                </div>
+                <p class="footer-small">SIGNAL LOST. NO ONE IS COMING TO SAVE YOU. STAY BEARISH.</p>
+            </footer>
+        </div>
+    </div>
+
+    <script src="main.js"></script>
+</body>
+
+</html>

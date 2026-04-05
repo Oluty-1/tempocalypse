@@ -1,0 +1,802 @@
+:root {
+            --green: #39ff14;
+            --green-dim: #1a7a09;
+            --green-glow: rgba(57, 255, 20, 0.4);
+            --amber: #ffb300;
+            --red: #ff2400;
+            --bg: #030803;
+            --surface: rgba(0, 10, 0, 0.85);
+        }
+
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--green);
+            font-family: 'Share Tech Mono', monospace;
+            overflow-x: hidden;
+            cursor: crosshair;
+        }
+
+        /* ─── NOISE OVERLAY ─── */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+            pointer-events: none;
+            z-index: 0;
+            opacity: 0.6;
+        }
+
+        /* ─── SCANLINES ─── */
+        body::after {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background: repeating-linear-gradient(0deg,
+                    transparent,
+                    transparent 2px,
+                    rgba(0, 0, 0, 0.15) 2px,
+                    rgba(0, 0, 0, 0.15) 4px);
+            pointer-events: none;
+            z-index: 999;
+            animation: scanroll 8s linear infinite;
+        }
+
+        @keyframes scanroll {
+            0% {
+                background-position: 0 0;
+            }
+
+            100% {
+                background-position: 0 100px;
+            }
+        }
+
+        /* ─── PHOSPHOR FLICKER ─── */
+        @keyframes phosphor {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            92% {
+                opacity: 1;
+            }
+
+            93% {
+                opacity: 0.85;
+            }
+
+            94% {
+                opacity: 1;
+            }
+
+            96% {
+                opacity: 0.9;
+            }
+
+            97% {
+                opacity: 1;
+            }
+        }
+
+        #page-wrap {
+            animation: phosphor 6s ease-in-out infinite;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* ─── LOADING SCREEN ─── */
+        #loading-screen {
+            position: fixed;
+            inset: 0;
+            background: #000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            cursor: pointer;
+            transition: opacity 0.4s ease;
+        }
+
+        #loading-screen.fade-out {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        #typewriter-text {
+            width: 80%;
+            max-width: 600px;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 1.2rem;
+            line-height: 1.8;
+            white-space: pre-wrap;
+            color: var(--green);
+        }
+
+        @keyframes blink-text {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0;
+            }
+        }
+
+        .cursor {
+            display: inline-block;
+            width: 10px;
+            height: 1.2rem;
+            background-color: var(--green);
+            animation: blink-text 1s step-end infinite;
+            vertical-align: middle;
+        }
+
+        /* ─── TICKER TAPE ─── */
+        #ticker-wrap {
+            width: 100%;
+            background: rgba(57, 255, 20, 0.08);
+            border-top: 1px solid var(--green-dim);
+            border-bottom: 1px solid var(--green-dim);
+            overflow: hidden;
+            padding: 6px 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        #ticker-inner {
+            display: flex;
+            white-space: nowrap;
+            animation: ticker 30s linear infinite;
+            font-size: 0.8rem;
+            letter-spacing: 2px;
+            color: var(--amber);
+            font-family: 'Share Tech Mono', monospace;
+        }
+
+        #ticker-inner span {
+            padding: 0 40px;
+        }
+
+        #ticker-inner .sep {
+            color: var(--red);
+        }
+
+        @keyframes ticker {
+            0% {
+                transform: translateX(0);
+            }
+
+            100% {
+                transform: translateX(-50%);
+            }
+        }
+
+        /* ─── MAIN LAYOUT ─── */
+        #main {
+            max-width: 960px;
+            margin: 0 auto;
+            padding: 0 24px 80px;
+        }
+
+        /* ─── HERO ─── */
+        .hero {
+            text-align: center;
+            padding: 80px 0 60px;
+            position: relative;
+        }
+
+        /* Radiation rings behind image */
+        .pfp-wrap {
+            position: relative;
+            width: 240px;
+            height: 240px;
+            margin: 0 auto 40px;
+        }
+
+        .radiation-ring {
+            position: absolute;
+            border-radius: 50%;
+            border: 1px solid var(--green-dim);
+            animation: pulse-ring 3s ease-out infinite;
+            opacity: 0;
+        }
+
+        .radiation-ring:nth-child(1) {
+            inset: -20px;
+            animation-delay: 0s;
+        }
+
+        .radiation-ring:nth-child(2) {
+            inset: -45px;
+            animation-delay: 1s;
+        }
+
+        .radiation-ring:nth-child(3) {
+            inset: -70px;
+            animation-delay: 2s;
+        }
+
+        @keyframes pulse-ring {
+            0% {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+
+            20% {
+                opacity: 0.6;
+            }
+
+            100% {
+                opacity: 0;
+                transform: scale(1.1);
+            }
+        }
+
+        .pfp-img {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border: 2px solid var(--green);
+            box-shadow: 0 0 30px var(--green-glow), inset 0 0 20px rgba(57, 255, 20, 0.05);
+            background-image: url('assets/wasteland_bot.png');
+            background-size: cover;
+            background-position: center;
+            object-fit: cover;
+        }
+
+        /* Glitch title */
+        .glitch-wrap {
+            position: relative;
+            display: inline-block;
+            margin-bottom: 8px;
+        }
+
+        h1 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: clamp(2.4rem, 6vw, 4.2rem);
+            font-weight: 900;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            color: var(--green);
+            text-shadow: 0 0 20px var(--green-glow);
+            position: relative;
+        }
+
+        h1::before,
+        h1::after {
+            content: attr(data-text);
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+        }
+
+        h1::before {
+            color: var(--red);
+            animation: glitch-1 4s infinite;
+            clip-path: polygon(0 30%, 100% 30%, 100% 50%, 0 50%);
+        }
+
+        h1::after {
+            color: #00ffff;
+            animation: glitch-2 4s infinite;
+            clip-path: polygon(0 60%, 100% 60%, 100% 75%, 0 75%);
+        }
+
+        @keyframes glitch-1 {
+
+            0%,
+            89%,
+            100% {
+                transform: none;
+                opacity: 0;
+            }
+
+            90% {
+                transform: translateX(-4px);
+                opacity: 0.8;
+            }
+
+            91% {
+                transform: translateX(4px);
+                opacity: 0.8;
+            }
+
+            92% {
+                transform: translateX(0);
+                opacity: 0;
+            }
+
+            95% {
+                transform: translateX(-3px);
+                opacity: 0.6;
+            }
+
+            96% {
+                transform: none;
+                opacity: 0;
+            }
+        }
+
+        @keyframes glitch-2 {
+
+            0%,
+            85%,
+            100% {
+                transform: none;
+                opacity: 0;
+            }
+
+            86% {
+                transform: translateX(5px);
+                opacity: 0.7;
+            }
+
+            87% {
+                transform: translateX(-3px);
+                opacity: 0.7;
+            }
+
+            88% {
+                transform: none;
+                opacity: 0;
+            }
+
+            93% {
+                transform: translateX(2px);
+                opacity: 0.5;
+            }
+
+            94% {
+                transform: none;
+                opacity: 0;
+            }
+        }
+
+        .hero-sub {
+            font-family: 'Orbitron', sans-serif;
+            font-size: clamp(0.9rem, 2.5vw, 1.2rem);
+            letter-spacing: 6px;
+            color: var(--amber);
+            text-transform: uppercase;
+            margin-bottom: 24px;
+        }
+
+        .hero-desc {
+            max-width: 580px;
+            margin: 0 auto 36px;
+            font-size: 1rem;
+            line-height: 1.9;
+            color: rgba(57, 255, 20, 0.7);
+        }
+
+        /* ─── BUTTONS ─── */
+        .btn-group {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 8px;
+        }
+
+        .btn {
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 1rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            padding: 14px 28px;
+            background: transparent;
+            color: var(--green);
+            border: 1px solid var(--green);
+            cursor: crosshair;
+            position: relative;
+            overflow: hidden;
+            transition: color 0.2s, box-shadow 0.2s;
+            clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 12px 100%, 0 calc(100% - 12px));
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: var(--green);
+            transform: translateY(100%);
+            transition: transform 0.2s ease;
+            z-index: -1;
+        }
+
+        .btn:hover::before {
+            transform: translateY(0);
+        }
+
+        .btn:hover {
+            color: #000;
+            box-shadow: 0 0 20px var(--green-glow);
+        }
+
+        .btn.danger {
+            color: var(--red);
+            border-color: var(--red);
+        }
+
+        .btn.danger::before {
+            background: var(--red);
+        }
+
+        .btn.danger:hover {
+            color: #fff;
+            box-shadow: 0 0 20px rgba(255, 36, 0, 0.4);
+        }
+
+        /* ─── COUNTDOWN ─── */
+        .countdown-section {
+            text-align: center;
+            padding: 40px 0;
+            border-top: 1px dashed var(--green-dim);
+            border-bottom: 1px dashed var(--green-dim);
+            margin: 20px 0 50px;
+        }
+
+        .countdown-label {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.7rem;
+            letter-spacing: 6px;
+            color: var(--red);
+            margin-bottom: 20px;
+            animation: blink-text 2s step-end infinite;
+        }
+
+        .countdown-digits {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .cd-block {
+            text-align: center;
+        }
+
+        .cd-num {
+            font-family: 'VT323', monospace;
+            font-size: 5rem;
+            line-height: 1;
+            color: var(--green);
+            text-shadow: 0 0 15px var(--green-glow);
+            display: block;
+            min-width: 100px;
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid var(--green-dim);
+            padding: 8px 12px;
+        }
+
+        .cd-label {
+            font-size: 0.65rem;
+            letter-spacing: 4px;
+            color: var(--green-dim);
+            margin-top: 6px;
+            display: block;
+        }
+
+        .cd-sep {
+            font-family: 'VT323', monospace;
+            font-size: 4rem;
+            color: var(--red);
+            line-height: 1;
+            margin-bottom: 24px;
+            animation: blink-text 1s step-end infinite;
+        }
+
+        /* ─── SECTION BOXES ─── */
+        .section-box {
+            border: 1px solid var(--green-dim);
+            padding: 32px;
+            margin-bottom: 36px;
+            background: var(--surface);
+            position: relative;
+            clip-path: polygon(0 0, calc(100% - 20px) 0, 100% 20px, 100% 100%, 20px 100%, 0 calc(100% - 20px));
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.5s, transform 0.5s;
+        }
+
+        .section-box.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Corner accents */
+        .section-box::before {
+            content: '';
+            position: absolute;
+            top: -1px;
+            left: -1px;
+            width: 40px;
+            height: 40px;
+            border-top: 2px solid var(--green);
+            border-left: 2px solid var(--green);
+        }
+
+        .section-box::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            right: -1px;
+            width: 40px;
+            height: 40px;
+            border-bottom: 2px solid var(--green);
+            border-right: 2px solid var(--green);
+        }
+
+        .section-label {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.65rem;
+            letter-spacing: 5px;
+            color: var(--green-dim);
+            margin-bottom: 16px;
+            text-transform: uppercase;
+        }
+
+        h3 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1rem;
+            letter-spacing: 3px;
+            color: var(--green);
+            text-transform: uppercase;
+            margin-bottom: 20px;
+            text-shadow: 0 0 8px var(--green-glow);
+        }
+
+        p {
+            line-height: 1.9;
+            color: rgba(57, 255, 20, 0.75);
+            margin-bottom: 12px;
+        }
+
+        /* ─── STATS GRID ─── */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .stat-item {
+            border-left: 2px solid var(--green-dim);
+            padding-left: 16px;
+        }
+
+        .stat-label {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.6rem;
+            letter-spacing: 4px;
+            color: var(--green-dim);
+            margin-bottom: 6px;
+            display: block;
+        }
+
+        .stat-value {
+            font-family: 'VT323', monospace;
+            font-size: 1.6rem;
+            color: var(--green);
+            line-height: 1.2;
+        }
+
+        /* ─── RADIATION METER ─── */
+        .rad-bar-wrap {
+            margin-top: 28px;
+        }
+
+        .rad-bar-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.75rem;
+            color: var(--green-dim);
+            letter-spacing: 2px;
+            margin-bottom: 8px;
+        }
+
+        .rad-bar-track {
+            width: 100%;
+            height: 10px;
+            background: rgba(57, 255, 20, 0.1);
+            border: 1px solid var(--green-dim);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .rad-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--green) 0%, var(--amber) 60%, var(--red) 100%);
+            animation: rad-fill 3s ease-out forwards, rad-pulse 2s 3s ease-in-out infinite;
+        }
+
+        @keyframes rad-fill {
+            0% {
+                width: 0%;
+            }
+
+            100% {
+                width: 87%;
+            }
+        }
+
+        @keyframes rad-pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.7;
+            }
+        }
+
+        /* ─── SIGNAL LOG ─── */
+        .signal-log {
+            font-size: 0.85rem;
+            line-height: 2;
+            color: rgba(57, 255, 20, 0.6);
+        }
+
+        .signal-log .log-line {
+            display: block;
+        }
+
+        .signal-log .ts {
+            color: var(--green-dim);
+            margin-right: 12px;
+        }
+
+        .signal-log .ok {
+            color: var(--green);
+        }
+
+        .signal-log .err {
+            color: var(--red);
+        }
+
+        .signal-log .warn {
+            color: var(--amber);
+        }
+
+        /* ─── TRAITS ─── */
+        .trait-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 8px;
+        }
+
+        .trait-pill {
+            font-size: 0.8rem;
+            letter-spacing: 2px;
+            padding: 6px 14px;
+            border: 1px solid var(--green-dim);
+            color: var(--green);
+            background: rgba(57, 255, 20, 0.05);
+            clip-path: polygon(6px 0, 100% 0, calc(100% - 6px) 100%, 0 100%);
+        }
+
+        .trait-pill.rare {
+            border-color: var(--amber);
+            color: var(--amber);
+        }
+
+        .trait-pill.legendary {
+            border-color: var(--red);
+            color: var(--red);
+            animation: blink-text 2s step-end infinite;
+        }
+
+        /* ─── FOOTER ─── */
+        footer {
+            text-align: center;
+            padding: 40px 0 20px;
+            border-top: 1px solid var(--green-dim);
+            position: relative;
+        }
+
+        .footer-logo {
+            font-family: 'VT323', monospace;
+            font-size: 4rem;
+            color: var(--green);
+            text-shadow: 0 0 20px var(--green-glow);
+            letter-spacing: 6px;
+            margin-bottom: 20px;
+            animation: phosphor 4s ease-in-out infinite;
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 32px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .footer-links a {
+            color: var(--green-dim);
+            text-decoration: none;
+            font-size: 0.85rem;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            transition: color 0.2s, text-shadow 0.2s;
+        }
+
+        .footer-links a:hover {
+            color: var(--green);
+            text-shadow: 0 0 8px var(--green-glow);
+        }
+
+        .footer-small {
+            font-size: 0.75rem;
+            color: var(--green-dim);
+            letter-spacing: 2px;
+            animation: blink-text 4s step-end infinite;
+        }
+
+        /* ─── RESPONSIVE ─── */
+        @media (max-width: 600px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+
+            .cd-num {
+                font-size: 3.5rem;
+                min-width: 70px;
+            }
+
+            .section-box {
+                padding: 20px;
+            }
+        }
+
+        /* ─── PHOSPHOR TRAIL ─── */
+        .cursor-trail {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background-color: var(--green);
+            border-radius: 50%;
+            pointer-events: none;
+            mix-blend-mode: screen;
+            box-shadow: 0 0 10px var(--green-glow);
+            transition: opacity 0.35s ease, transform 0.35s ease;
+            z-index: 9999;
+            transform: translate(-50%, -50%);
+        }
+
+        /* ─── HOVER GLITCH COUNTDOWN ─── */
+        .countdown-digits:hover .cd-num {
+            animation: glitch-1 0.2s infinite;
+            color: var(--red);
+        }
+        .countdown-digits:hover .cd-sep {
+            color: #00ffff;
+            animation: glitch-2 0.2s infinite;
+        }

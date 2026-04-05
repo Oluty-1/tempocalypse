@@ -11,11 +11,11 @@
         href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=VT323&family=Orbitron:wght@400;700;900&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 </head>
 
 <body>
-    <canvas id="matrix-rain"></canvas>
-    <div id="particles-container"></div>
+    <div id="webgl-container"></div>
 
     <!-- LOADING SCREEN -->
     <div id="loading-screen">
@@ -207,6 +207,16 @@
         </div>
     </div>
 
+    <!-- SVG DISPLACEMENT FILTER FOR CRT GLITCH -->
+    <svg style="display: none;">
+        <defs>
+            <filter id="crt-glitch">
+                <feTurbulence type="fractalNoise" baseFrequency="0.005 0.05" numOctaves="2" result="noise" />
+                <feDisplacementMap in="SourceGraphic" in2="noise" scale="0" xChannelSelector="R" yChannelSelector="G"
+                    id="glitch-displacement" />
+            </filter>
+        </defs>
+    </svg>
     <script src="main.js"></script>
 </body>
 

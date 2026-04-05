@@ -16,8 +16,7 @@ function typeWriter() {
 
 window.onload = () => {
     setTimeout(typeWriter, 500);
-    initMatrixRain();
-    initParticles();
+    initThreeJS();
 };
 
 document.getElementById('loading-screen').addEventListener('click', function () {
@@ -98,27 +97,6 @@ setInterval(() => {
     logEl.scrollTop = logEl.scrollHeight;
 }, 4000);
 
-let throttle = false;
-const createTrail = (e) => {
-    if (throttle) return;
-    throttle = true;
-    setTimeout(() => throttle = false, 50);
-
-    const trail = document.createElement('div');
-    trail.className = 'cursor-trail';
-    trail.style.left = e.pageX + 'px';
-    trail.style.top = e.pageY + 'px';
-    document.body.appendChild(trail);
-    setTimeout(() => {
-        trail.style.opacity = '0';
-        trail.style.transform = 'scale(2)';
-    }, 50);
-    setTimeout(() => trail.remove(), 400);
-};
-
-if (window.matchMedia('(hover: hover)').matches) {
-    document.addEventListener('mousemove', createTrail);
-}
 
 document.querySelectorAll('.trait-pill').forEach(pill => {
     pill.addEventListener('mouseenter', () => {
@@ -135,71 +113,93 @@ document.querySelectorAll('.trait-pill').forEach(pill => {
     });
 });
 
-function initMatrixRain() {
-    const canvas = document.getElementById('matrix-rain');
-    if (!canvas) return;
+function initThreeJS() {
+    const container = document.getElementById('webgl-container');
+    if (!container || typeof THREE === 'undefined') return;
 
-    const ctx = canvas.getContext('2d');
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
+    const scene = new THREE.Scene();
+    scene.fog = new THREE.FogExp2(0x030803, 0.0015);
 
-    const chars = '01アイウエオカキクケコサシスセソタチツテトナニヌネノ';
-    const fontSize = 14;
-    const columns = canvas.width / fontSize;
-    const drops = Array(Math.floor(columns)).fill(1);
+    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+    const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    container.appendChild(renderer.domElement);
 
-    function draw() {
-        ctx.fillStyle = 'rgba(3, 8, 3, 0.05)';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
+    // ─── MASSIVE CENTRAL ARTIFACT ───
+    const geom = new THREE.TorusKnotGeometry(15, 3.5, 120, 20);
+    const mat = new THREE.MeshBasicMaterial({
+        color: 0x39ff14,
+        wireframe: true,
+        transparent: true,
+        opacity: 0.12
+    });
+    const mesh = new THREE.Mesh(geom, mat);
+    mesh.position.z = -40;
+    scene.add(mesh);
 
-        ctx.fillStyle = '#39ff14';
-        ctx.font = fontSize + 'px monospace';
-
-        for (let i = 0; i < drops.length; i++) {
-            const text = chars[Math.floor(Math.random() * chars.length)];
-            ctx.fillText(text, i * fontSize, drops[i] * fontSize);
-
-            if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
-                drops[i] = 0;
-            }
-            drops[i]++;
-        }
+    // ─── 3D DUST PARTICLES ───
+    const partGeom = new THREE.BufferGeometry();
+    const partCount = 3000;
+    const posArray = new Float32Array(partCount * 3);
+    for (let i = 0; i < partCount * 3; i++) {
+        posArray[i] = (Math.random() - 0.5) * 160;
     }
+    partGeom.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
+    const partMat = new THREE.PointsMaterial({
+        size: 0.15,
+        color: 0x39ff14,
+        transparent: true,
+        opacity: 0.6,
+        blending: THREE.AdditiveBlending
+    });
+    const particles = new THREE.Points(partGeom, partMat);
+    scene.add(particles);
 
-    setInterval(draw, 50);
+    // ─── INTERACTIVE PARALLAX ───
+    let mouseX = 0;
+    let mouseY = 0;
+    const windowHalfX = window.innerWidth / 2;
+    const windowHalfY = window.innerHeight / 2;
+
+    const onDocumentMouseMove = (event) => {
+        let clientX = event.clientX;
+        let clientY = event.clientY;
+        if (event.touches && event.touches.length > 0) {
+            clientX = event.touches[0].clientX;
+            clientY = event.touches[0].clientY;
+        }
+        mouseX = (clientX - windowHalfX);
+        mouseY = (clientY - windowHalfY);
+    };
+
+    document.addEventListener('mousemove', onDocumentMouseMove, false);
+    document.addEventListener('touchmove', onDocumentMouseMove, { passive: true });
 
     window.addEventListener('resize', () => {
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
     });
-}
 
-function initParticles() {
-    const container = document.getElementById('particles-container');
-    if (!container) return;
+    const clock = new THREE.Clock();
+    const animate = () => {
+        requestAnimationFrame(animate);
+        const time = clock.getElapsedTime();
 
-    function createParticle() {
-        const particle = document.createElement('div');
-        particle.className = 'particle';
-        particle.style.left = Math.random() * 100 + '%';
-        particle.style.setProperty('--drift', (Math.random() * 100 - 50) + 'px');
-        const duration = 15 + Math.random() * 10;
-        particle.style.animationDuration = duration + 's';
-        particle.style.animationDelay = Math.random() * 5 + 's';
-        container.appendChild(particle);
+        mesh.rotation.x += 0.002;
+        mesh.rotation.y += 0.003;
 
-        setTimeout(() => particle.remove(), (duration + 5) * 1000);
-    }
+        particles.rotation.y = time * 0.03;
+        particles.rotation.x = time * 0.01;
 
-    for (let i = 0; i < 30; i++) {
-        setTimeout(() => createParticle(), i * 200);
-    }
+        camera.position.x += (mouseX * 0.08 - camera.position.x) * 0.05;
+        camera.position.y += (-mouseY * 0.08 - camera.position.y) * 0.05;
+        camera.lookAt(scene.position);
 
-    setInterval(() => {
-        if (container.children.length < 30) {
-            createParticle();
-        }
-    }, 1000);
+        renderer.render(scene, camera);
+    };
+    animate();
 }
 
 const pfpWrap = document.querySelector('.pfp-wrap');
@@ -246,3 +246,112 @@ document.querySelectorAll('.section-box').forEach(box => {
         box.style.transform = '';
     });
 });
+
+// ─── CINEMATIC AUDIO ENGINE ───
+let audioCtx;
+const initAudio = () => {
+    if (audioCtx) return;
+    try {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+        // Ambient drone
+        const osc = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+        const filter = audioCtx.createBiquadFilter();
+
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(45, audioCtx.currentTime); // Deep bass
+
+        filter.type = 'lowpass';
+        filter.frequency.setValueAtTime(100, audioCtx.currentTime);
+
+        gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
+        gainNode.gain.linearRampToValueAtTime(0.3, audioCtx.currentTime + 5);
+
+        osc.connect(filter);
+        filter.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+        osc.start();
+    } catch (e) {
+        console.warn('AudioContext failed:', e);
+    }
+};
+
+const playHoverClick = () => {
+    if (!audioCtx) return;
+    const osc = audioCtx.createOscillator();
+    const gainNode = audioCtx.createGain();
+
+    osc.type = 'square';
+    osc.frequency.setValueAtTime(800, audioCtx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(100, audioCtx.currentTime + 0.05);
+
+    gainNode.gain.setValueAtTime(0.05, audioCtx.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.05);
+
+    osc.connect(gainNode);
+    gainNode.connect(audioCtx.destination);
+
+    osc.start();
+    osc.stop(audioCtx.currentTime + 0.05);
+};
+
+document.getElementById('loading-screen').addEventListener('click', function () {
+    initAudio();
+    this.classList.add('fade-out');
+    setTimeout(() => { this.style.display = 'none'; }, 420);
+    document.body.style.backgroundColor = '#39ff14';
+    setTimeout(() => { document.body.style.backgroundColor = ''; }, 100);
+});
+document.querySelectorAll('.btn, .trait-pill, .footer-links a, .cd-block').forEach(el => {
+    el.addEventListener('mouseenter', playHoverClick);
+});
+
+// ─── GLOBAL SVG GLITCH ───
+setInterval(() => {
+    const filter = document.getElementById('glitch-displacement');
+    if (!filter) return;
+    filter.setAttribute('scale', Math.random() * 20 + 10);
+    document.body.style.filter = 'url(#crt-glitch)';
+    setTimeout(() => {
+        filter.setAttribute('scale', '0');
+        document.body.style.filter = 'none';
+    }, 100 + Math.random() * 200);
+}, 6000 + Math.random() * 8000);
+
+// ─── CRYPTOGRAPHIC DECRYPTION ───
+const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%&*XØŒ";
+document.querySelectorAll('h3, .section-label, .cd-label').forEach(el => {
+    el.dataset.original = el.textContent;
+    el.addEventListener('mouseenter', () => {
+        let iterations = 0;
+        const interval = setInterval(() => {
+            el.textContent = el.dataset.original.split('')
+                .map((char, index) => {
+                    if (char === ' ') return ' ';
+                    if (index < iterations) return el.dataset.original[index];
+                    return chars[Math.floor(Math.random() * chars.length)];
+                }).join('');
+            if (iterations >= el.dataset.original.length) {
+                clearInterval(interval);
+                el.textContent = el.dataset.original;
+            }
+            iterations += 1 / 3;
+        }, 30);
+    });
+});
+
+// ─── MAGNETIC PHYSICS FOR BUTTONS ───
+if (window.matchMedia('(hover: hover)').matches) {
+    document.querySelectorAll('.btn').forEach(btn => {
+        btn.addEventListener('mousemove', (e) => {
+            const rect = btn.getBoundingClientRect();
+            const x = e.clientX - rect.left - rect.width / 2;
+            const y = e.clientY - rect.top - rect.height / 2;
+            btn.style.transform = `translate(${x * 0.3}px, ${y * 0.3}px) scale(1.05)`;
+        });
+        btn.addEventListener('mouseleave', () => {
+            btn.style.transform = '';
+        });
+    });
+}

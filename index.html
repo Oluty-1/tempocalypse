@@ -11,6 +11,7 @@
         href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=VT323&family=Orbitron:wght@400;700;900&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="style.css">
+    <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 </head>
 
@@ -73,10 +74,10 @@
                 <p class="hero-sub">The World Burned. We Stayed Bearish.</p>
                 <p class="hero-desc">
                     Welcome to the Wasteland. 3,333 scavengers, rusted bots, and doom-scrollers documenting the end of
-                    days — permanently — on the Tempo Network.
+                    days on the Tempo Network.
                 </p>
                 <div class="btn-group">
-                    <button class="btn danger">[ MINT YOUR SCRAP ]</button>
+                    <button class="btn danger" onclick="handleApplyClick(this)">[ APPLY FOR ACCESS ]</button>
                     <button class="btn"
                         onclick="document.getElementById('doom-scroll').scrollIntoView({behavior:'smooth'})">[ READ THE
                         DOOM SCROLL ]</button>
@@ -114,7 +115,7 @@
                 <div class="section-label">// TRANSMISSION 001 //</div>
                 <h3>&gt; The Doom Scroll_</h3>
                 <p>They told us it was just a dip. They printed more. They told us inflation was transitory. They lied
-                    again. When the charts finally hit zero — absolute, irreversible zero — the skies turned toxic
+                    again. When the charts finally hit zero, the skies turned toxic
                     green, the power grids screamed, and the fiat burned spectacularly in the streets.</p>
                 <p>Now, only the toughest, rustiest, and most unhinged survive. We aren't here to rebuild society. We
                     are here to hoard scavenged tech, flex survival gear, and document the collapse on the immutable
@@ -197,10 +198,10 @@
             <footer>
                 <div class="footer-logo">TEMPOCALYPSE</div>
                 <div class="footer-links">
-                    <a href="#">Twitter</a>
-                    <a href="#">Discord</a>
-                    <a href="#">Tempo Explorer</a>
-                    <a href="#">Whitepaper</a>
+                    <a href="https://x.com/_tempocalypse" target="_blank" rel="noopener noreferrer">Twitter</a>
+                    <a href="https://explore.tempo.xyz/" target="_blank" rel="noopener noreferrer">Tempo Explorer</a>
+                    <a href="https://lore.tempocalypse.com/Tempocalypse%20Lorepaper%20v2.pdf" target="_blank"
+                        rel="noopener noreferrer">Lorepaper</a>
                 </div>
                 <p class="footer-small">SIGNAL LOST. NO ONE IS COMING TO SAVE YOU. STAY BEARISH.</p>
             </footer>
@@ -217,6 +218,8 @@
             </filter>
         </defs>
     </svg>
+
+    <button id="audio-toggle" class="btn audio-btn" onclick="toggleAudio()">[ AUDIO: ON ]</button>
     <script src="main.js"></script>
 </body>
 

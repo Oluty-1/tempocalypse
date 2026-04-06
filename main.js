@@ -249,36 +249,149 @@ document.querySelectorAll('.section-box').forEach(box => {
 
 // ─── CINEMATIC AUDIO ENGINE ───
 let audioCtx;
+let masterGain;
+let audioMuted = false;
+
+const startProceduralAudio = () => {
+    // 1. Noise Pad (Wind/Static)
+    const bufferSize = audioCtx.sampleRate * 2;
+    const noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+    const output = noiseBuffer.getChannelData(0);
+    for (let i = 0; i < bufferSize; i++) {
+        output[i] = Math.random() * 2 - 1;
+    }
+    const noiseSource = audioCtx.createBufferSource();
+    noiseSource.buffer = noiseBuffer;
+    noiseSource.loop = true;
+
+    const noiseFilter = audioCtx.createBiquadFilter();
+    noiseFilter.type = 'bandpass';
+    noiseFilter.Q.value = 1;
+
+    // LFO to sweep filter frequency
+    const lfo = audioCtx.createOscillator();
+    lfo.type = 'sine';
+    lfo.frequency.value = 0.05; // Very slow sweep
+    const lfoGain = audioCtx.createGain();
+    lfoGain.gain.value = 600; // Sweep depth
+    lfo.connect(lfoGain);
+    lfoGain.connect(noiseFilter.frequency);
+    noiseFilter.frequency.value = 800; // Base frequency
+
+    const noiseGain = audioCtx.createGain();
+    noiseGain.gain.value = 0.03;
+
+    noiseSource.connect(noiseFilter);
+    noiseFilter.connect(noiseGain);
+    noiseGain.connect(masterGain);
+
+    noiseSource.start();
+    lfo.start();
+
+    // 2. Data stream bleeps
+    const playBleep = () => {
+        if (!audioMuted) {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = Math.random() > 0.5 ? 'sine' : 'square';
+            osc.frequency.setValueAtTime(400 + Math.random() * 2000, audioCtx.currentTime);
+
+            gain.gain.setValueAtTime(0, audioCtx.currentTime);
+            gain.gain.linearRampToValueAtTime(0.01 + Math.random() * 0.02, audioCtx.currentTime + 0.01);
+            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
+
+            osc.connect(gain);
+            gain.connect(masterGain);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.1);
+        }
+        setTimeout(playBleep, Math.random() * 2000 + 500);
+    };
+    playBleep();
+
+    // 3. Low rhythmic pulse
+    const playPulse = () => {
+        if (!audioMuted) {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(55, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(30, audioCtx.currentTime + 0.5);
+
+            gain.gain.setValueAtTime(0.5, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+
+            osc.connect(gain);
+            gain.connect(masterGain);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.5);
+        }
+        setTimeout(playPulse, 1000); // 60 BPM pulse
+    };
+    playPulse();
+
+    // 4. Glitch effect function
+    const createGlitch = () => {
+        if (audioCtx && !audioMuted) {
+            const dur = Math.random() * 0.15 + 0.05;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            const bitcrushFilter = audioCtx.createBiquadFilter();
+
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(50 + Math.random() * 500, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(10, audioCtx.currentTime + dur);
+
+            gain.gain.setValueAtTime(0, audioCtx.currentTime);
+            gain.gain.linearRampToValueAtTime(0.05 + Math.random() * 0.05, audioCtx.currentTime + dur * 0.1);
+            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + dur);
+
+            bitcrushFilter.type = 'highpass';
+            bitcrushFilter.frequency.value = 1000;
+
+            osc.connect(bitcrushFilter);
+            bitcrushFilter.connect(gain);
+            gain.connect(masterGain);
+
+            osc.start();
+            osc.stop(audioCtx.currentTime + dur);
+        }
+        setTimeout(createGlitch, Math.random() * 8000 + 4000);
+    };
+    createGlitch();
+};
+
 const initAudio = () => {
     if (audioCtx) return;
     try {
         audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-
-        // Ambient drone
-        const osc = audioCtx.createOscillator();
-        const gainNode = audioCtx.createGain();
-        const filter = audioCtx.createBiquadFilter();
-
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(45, audioCtx.currentTime); // Deep bass
-
-        filter.type = 'lowpass';
-        filter.frequency.setValueAtTime(100, audioCtx.currentTime);
-
-        gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
-        gainNode.gain.linearRampToValueAtTime(0.3, audioCtx.currentTime + 5);
-
-        osc.connect(filter);
-        filter.connect(gainNode);
-        gainNode.connect(audioCtx.destination);
-        osc.start();
+        masterGain = audioCtx.createGain();
+        masterGain.gain.value = audioMuted ? 0 : 1;
+        masterGain.connect(audioCtx.destination);
+        startProceduralAudio();
     } catch (e) {
         console.warn('AudioContext failed:', e);
     }
 };
 
+const toggleAudio = () => {
+    audioMuted = !audioMuted;
+    if (audioCtx && masterGain) {
+        if (audioMuted) {
+            masterGain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.5);
+        } else {
+            masterGain.gain.linearRampToValueAtTime(1, audioCtx.currentTime + 0.5);
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+        }
+    }
+    const btn = document.getElementById('audio-toggle');
+    if (btn) btn.textContent = audioMuted ? '[ AUDIO: OFF ]' : '[ AUDIO: ON ]';
+};
+
 const playHoverClick = () => {
-    if (!audioCtx) return;
+    if (!audioCtx || audioMuted) return;
     const osc = audioCtx.createOscillator();
     const gainNode = audioCtx.createGain();
 
@@ -290,7 +403,7 @@ const playHoverClick = () => {
     gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.05);
 
     osc.connect(gainNode);
-    gainNode.connect(audioCtx.destination);
+    gainNode.connect(masterGain);
 
     osc.start();
     osc.stop(audioCtx.currentTime + 0.05);
@@ -306,6 +419,62 @@ document.getElementById('loading-screen').addEventListener('click', function () 
 document.querySelectorAll('.btn, .trait-pill, .footer-links a, .cd-block').forEach(el => {
     el.addEventListener('mouseenter', playHoverClick);
 });
+
+const handleApplyClick = (btn) => {
+    if (btn.classList.contains('locked')) return;
+
+    const originalText = btn.innerHTML;
+    btn.classList.add('locked');
+
+    const rejections = [
+        '[ FATAL ERROR: TRACES OF FIAT DETECTED. ]',
+        '[ ACCESS DENIED: INSUFFICIENT SCRAP. ]',
+        '[ SIGNAL LOST. SECURE YOUR BUNKER. ]',
+        '[ PATIENCE, SURVIVOR. GATE IS LOCKED. ]',
+        '[ CLEARANCE REJECTED. SURVIVE LONGER. ]',
+        '[ GATE CLOSED. THE BULLS ARE EXTINCT. ]',
+        '[ BIO-SCAN FAILED: RADIATION LEVELS CRITICAL. ]',
+        '[ TEMPO NODE REFUSED CONNECTION. ]'
+    ];
+    const randomMsg = rejections[Math.floor(Math.random() * rejections.length)];
+
+    btn.innerHTML = randomMsg;
+    btn.style.borderColor = 'var(--amber)';
+    btn.style.color = 'var(--amber)';
+
+    const filter = document.getElementById('glitch-displacement');
+    if (filter) {
+        filter.setAttribute('scale', 40);
+        document.body.style.filter = 'url(#crt-glitch)';
+        setTimeout(() => {
+            filter.setAttribute('scale', '0');
+            document.body.style.filter = 'none';
+        }, 150);
+    }
+
+    if (audioCtx && !audioMuted && masterGain) {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(100, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(30, audioCtx.currentTime + 0.4);
+
+        gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.4);
+
+        osc.connect(gain);
+        gain.connect(masterGain);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.4);
+    }
+
+    setTimeout(() => {
+        btn.innerHTML = originalText;
+        btn.classList.remove('locked');
+        btn.style.borderColor = '';
+        btn.style.color = '';
+    }, 2800);
+};
 
 // ─── GLOBAL SVG GLITCH ───
 setInterval(() => {

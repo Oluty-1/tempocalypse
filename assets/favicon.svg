@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <circle cx="50" cy="50" r="48" fill="#030803" stroke="#39ff14" stroke-width="4"/>
+  <!-- Central dot -->
+  <circle cx="50" cy="50" r="8" fill="#39ff14"/>
+  <!-- Top blade -->
+  <path d="M 50 38 L 70 12 A 40 40 0 0 0 30 12 Z" fill="#39ff14"/>
+  <!-- Bottom right blade -->
+  <path d="M 60.4 56 L 93.7 65.5 A 40 40 0 0 0 76.5 35.5 Z" fill="#39ff14"/>
+  <!-- Bottom left blade -->
+  <path d="M 39.6 56 L 6.3 65.5 A 40 40 0 0 1 23.5 35.5 Z" fill="#39ff14"/>
+</svg>

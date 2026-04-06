@@ -1113,34 +1113,60 @@ footer {
 
 .audio-btn {
     position: fixed;
-    bottom: calc(24px + env(safe-area-inset-bottom, 0px));
-    right: 24px;
+    top: calc(16px + env(safe-area-inset-top, 0px));
+    right: calc(16px + env(safe-area-inset-right, 0px));
     z-index: 1000;
-    padding: 10px 20px;
+    padding: 10px;
     font-size: 0.8rem;
     width: auto !important;
-    /* overrides .btn width: 100% on small screens */
+    min-width: 44px;
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     backdrop-filter: blur(5px);
     background: rgba(0, 10, 0, 0.8);
 }
 
-@media (max-width: 768px) {
-    .audio-btn {
-        bottom: calc(16px + env(safe-area-inset-bottom, 0px));
-        right: 16px;
-        padding: 8px 16px;
-        font-size: 0.75rem;
-    }
+.audio-btn:hover {
+    transform: none;
 }
 
-@media (max-width: 480px) {
-    .audio-btn {
-        top: auto;
-        right: auto;
-        bottom: calc(12px + env(safe-area-inset-bottom, 0px));
-        left: 50%;
-        transform: translateX(-50%);
-        padding: 8px 12px;
-        font-size: 0.65rem;
-    }
+.audio-btn:active {
+    transform: none;
+}
+
+.audio-btn .audio-icon {
+    width: 22px;
+    height: 22px;
+    display: block;
+    fill: none;
+    stroke: var(--green);
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.audio-btn .audio-icon--off {
+    display: none;
+}
+
+.audio-btn.is-muted .audio-icon--on {
+    display: none;
+}
+
+.audio-btn.is-muted .audio-icon--off {
+    display: block;
+}
+
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
 }

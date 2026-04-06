@@ -386,9 +386,19 @@ const toggleAudio = () => {
             }
         }
     }
-    const btn = document.getElementById('audio-toggle');
-    if (btn) btn.textContent = audioMuted ? '[ AUDIO: OFF ]' : '[ AUDIO: ON ]';
+    updateAudioToggleUI();
 };
+
+const updateAudioToggleUI = () => {
+    const btn = document.getElementById('audio-toggle');
+    if (!btn) return;
+    btn.classList.toggle('is-muted', audioMuted);
+    btn.setAttribute('aria-pressed', String(!audioMuted));
+    btn.setAttribute('aria-label', audioMuted ? 'Unmute audio' : 'Mute audio');
+    btn.title = audioMuted ? 'Unmute' : 'Mute';
+};
+
+updateAudioToggleUI();
 
 const playHoverClick = () => {
     if (!audioCtx || audioMuted) return;
@@ -416,7 +426,7 @@ document.getElementById('loading-screen').addEventListener('click', function () 
     document.body.style.backgroundColor = '#39ff14';
     setTimeout(() => { document.body.style.backgroundColor = ''; }, 100);
 });
-document.querySelectorAll('.btn, .trait-pill, .footer-links a, .cd-block').forEach(el => {
+document.querySelectorAll('.btn:not(.audio-btn), .trait-pill, .footer-links a, .cd-block').forEach(el => {
     el.addEventListener('mouseenter', playHoverClick);
 });
 
@@ -512,7 +522,7 @@ document.querySelectorAll('h3, .section-label, .cd-label').forEach(el => {
 
 // ─── MAGNETIC PHYSICS FOR BUTTONS ───
 if (window.matchMedia('(hover: hover)').matches) {
-    document.querySelectorAll('.btn').forEach(btn => {
+    document.querySelectorAll('.btn:not(.audio-btn)').forEach(btn => {
         btn.addEventListener('mousemove', (e) => {
             const rect = btn.getBoundingClientRect();
             const x = e.clientX - rect.left - rect.width / 2;

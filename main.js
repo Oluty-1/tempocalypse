@@ -26,7 +26,7 @@ document.getElementById('loading-screen').addEventListener('click', function () 
     setTimeout(() => { document.body.style.backgroundColor = ''; }, 100);
 });
 
-const deathDate = new Date('2022-11-08T00:00:00Z');
+const deathDate = new Date('2026-01-15T00:00:00Z');
 function updateClock() {
     const now = new Date();
     const diff = now - deathDate;
@@ -454,28 +454,38 @@ const handleApplyClick = (btn) => {
 
     const filter = document.getElementById('glitch-displacement');
     if (filter) {
-        filter.setAttribute('scale', 40);
+        filter.setAttribute('scale', 16);
         document.body.style.filter = 'url(#crt-glitch)';
         setTimeout(() => {
             filter.setAttribute('scale', '0');
             document.body.style.filter = 'none';
-        }, 150);
+        }, 90);
     }
 
     if (audioCtx && !audioMuted && masterGain) {
+        // softer "error blip" (less harsh than the sawtooth drop)
         const osc = audioCtx.createOscillator();
+        const filter = audioCtx.createBiquadFilter();
         const gain = audioCtx.createGain();
-        osc.type = 'sawtooth';
-        osc.frequency.setValueAtTime(100, audioCtx.currentTime);
-        osc.frequency.exponentialRampToValueAtTime(30, audioCtx.currentTime + 0.4);
 
-        gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.4);
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(520, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(260, audioCtx.currentTime + 0.12);
 
-        osc.connect(gain);
+        filter.type = 'lowpass';
+        filter.frequency.setValueAtTime(1200, audioCtx.currentTime);
+        filter.Q.value = 0.7;
+
+        gain.gain.setValueAtTime(0.0, audioCtx.currentTime);
+        gain.gain.linearRampToValueAtTime(0.06, audioCtx.currentTime + 0.01);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.14);
+
+        osc.connect(filter);
+        filter.connect(gain);
         gain.connect(masterGain);
+
         osc.start();
-        osc.stop(audioCtx.currentTime + 0.4);
+        osc.stop(audioCtx.currentTime + 0.15);
     }
 
     setTimeout(() => {

@@ -210,47 +210,76 @@
 
     <!-- APPLICATION MODAL -->
     <div id="apply-modal" class="modal-overlay" style="display: none;">
-        <div class="modal-content section-box">
+        <div class="modal-content section-box" id="modal-box">
             <div class="section-label">// ENLISTMENT PROTOCOL //</div>
-            <h3>&gt; Submit Scrap_</h3>
+            <h3>&gt; Terminal Uplink_</h3>
             
             <form id="enlist-form" name="wasteland-app" data-netlify="true">
                 <input type="hidden" name="form-name" value="wasteland-app" />
 
-                <div class="input-group">
-                    <label>X (Twitter) Handle</label>
-                    <input type="text" name="x_handle" placeholder="@survivor" required>
+                <!-- Step 1 -->
+                <div class="form-step" data-step="1">
+                    <p class="step-prompt" data-text="> IDENTIFY YOURSELF. DROP X HANDLE.">&gt; IDENTIFY YOURSELF. DROP X HANDLE.</p>
+                    <div class="input-row">
+                        <span class="prompt-cursor">&gt;</span>
+                        <input type="text" name="x_handle" placeholder="@survivor" required autocomplete="off">
+                        <button type="button" class="btn minimal btn-next" onclick="nextStep()" aria-label="Next Step">[ ENter ]</button>
+                    </div>
                 </div>
 
-                <div class="input-group">
-                    <label>Wallet Address (ERC-20)</label>
-                    <input type="text" name="wallet" placeholder="0x..." required>
+                <!-- Step 2 -->
+                <div class="form-step" data-step="2" style="display:none;">
+                    <p class="step-prompt" data-text="> LOCATING SIGNAL... ENTER ERC-20 WALLET.">&gt; LOCATING SIGNAL... ENTER ERC-20 WALLET.</p>
+                    <div class="input-row">
+                        <span class="prompt-cursor">&gt;</span>
+                        <input type="text" name="wallet" placeholder="0x..." required autocomplete="off">
+                        <button type="button" class="btn minimal btn-next" onclick="nextStep()" aria-label="Next Step">[ ENter ]</button>
+                    </div>
                 </div>
 
-                <div class="input-group">
-                    <label>Choose Faction</label>
-                    <select name="faction" required>
-                        <option value="" disabled selected>[ SELECT FACTION ]</option>
-                        <option value="raider">Scrap Raiders</option>
-                        <option value="dev">Rusted Devs</option>
-                        <option value="rebel">Fiat Rebels</option>
-                        <option value="hoarder">Perma-Bear Hoarders</option>
-                    </select>
+                <!-- Step 3 -->
+                <div class="form-step" data-step="3" style="display:none;">
+                    <p class="step-prompt" data-text="> SELECT FACTION ALIGNMENT.">&gt; SELECT FACTION ALIGNMENT.</p>
+                    <div class="faction-grid">
+                        <label class="faction-option">
+                            <input type="radio" name="faction" value="raider" required> 
+                            <span class="f-box">[ ]</span> SCRAP RAIDERS
+                        </label>
+                        <label class="faction-option">
+                            <input type="radio" name="faction" value="dev"> 
+                            <span class="f-box">[ ]</span> RUSTED DEVS
+                        </label>
+                        <label class="faction-option">
+                            <input type="radio" name="faction" value="rebel"> 
+                            <span class="f-box">[ ]</span> FIAT REBELS
+                        </label>
+                        <label class="faction-option">
+                            <input type="radio" name="faction" value="hoarder"> 
+                            <span class="f-box">[ ]</span> PERMA-BEAR HOARDERS
+                        </label>
+                    </div>
+                    <button type="button" class="btn danger btn-next" onclick="nextStep()" style="margin-top:20px; width:100%;">[ CONFIRM FACTION ]</button>
                 </div>
 
-                <div class="input-group">
-                    <label>Bear Market Survival Story</label>
-                    <textarea name="story" rows="3" placeholder="How much did you lose in the crash?..." required></textarea>
+                <!-- Step 4 -->
+                <div class="form-step" data-step="4" style="display:none;">
+                    <p class="step-prompt" data-text="> RECORD BEAR MARKET TRAUMA LOG.">&gt; RECORD BEAR MARKET TRAUMA LOG.</p>
+                    <textarea name="story" rows="4" placeholder="How much did you lose in the crash?..." required></textarea>
+                    <button type="submit" class="btn danger" style="width:100%; margin-top:20px;">[ TRANSMIT DATA ]</button>
                 </div>
 
-                <button type="submit" class="btn danger">[ TRANSMIT APPLICATION ]</button>
-                <button type="button" class="btn" onclick="closeModal()">[ ABORT ]</button>
+                <div class="modal-footer">
+                    <button type="button" class="btn minimal abort-btn" onclick="closeModal()">[ ABORT ]</button>
+                    <span class="step-indicator" id="step-count">1 / 4</span>
+                </div>
             </form>
 
             <div id="success-state" style="display: none; text-align: center;">
-                <h3 style="color: var(--amber);">TRANSMISSION RECEIVED</h3>
-                <p>Data logged to the Tempo chain. Now, prove you aren't a fed. Broadcast your survival to the network.</p>
-                <button class="btn" id="tweet-btn">[ BROADCAST TO X ]</button>
+                <h3 style="color: var(--amber);">&gt; CLEARANCE STATUS: PENDING</h3>
+                <p>Application data stored locally. To synchronize with the Tempo Network and finalize your enlistment, you MUST broadcast to the timeline.</p>
+                <p style="color: var(--red); font-size: 0.85rem; margin-bottom: 24px; text-transform: uppercase;">[ WARNING: UNBROADCASTED APPLICATIONS WILL BE PURGED ]</p>
+                <button class="btn danger" id="tweet-btn" style="width: 100%;">[ EXECUTE BROADCAST TO X ]</button>
+                <p id="final-validation-msg" style="display: none; color: var(--green); margin-top: 24px; font-family: 'VT323', monospace; font-size: 1.4rem;">&gt; BROADCAST TRACKED. YOU ARE IN THE QUEUE.</p>
             </div>
         </div>
     </div>

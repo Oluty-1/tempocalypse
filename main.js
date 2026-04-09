@@ -501,9 +501,150 @@ const handleApplyClick = (btn) => {
     }, 1800);
 };
 
-// Open Modal Logic
+// ─── STEP ENGINE FOR ENLISTMENT MODAL ───
+let currentStep = 1;
+const totalSteps = 4;
+
+function showStep(step) {
+    document.querySelectorAll('.form-step').forEach(el => {
+        el.style.display = 'none';
+        el.classList.remove('active');
+    });
+    const activeEl = document.querySelector(`.form-step[data-step="${step}"]`);
+    activeEl.style.display = 'block';
+
+    // Trigger reflow for boot-up animation
+    void activeEl.offsetWidth;
+    activeEl.classList.add('active');
+
+    document.getElementById('step-count').innerText = `${step} / ${totalSteps}`;
+
+    // Auto-focus active input
+    const input = activeEl.querySelector('input, textarea');
+    if (input) {
+        setTimeout(() => input.focus(), 50);
+    }
+
+    // Typewriter effect for prompt
+    const prompt = activeEl.querySelector('.step-prompt');
+    if (prompt) {
+        const text = prompt.getAttribute('data-text');
+        prompt.innerHTML = '';
+        let i = 0;
+        const typeInterval = setInterval(() => {
+            prompt.innerHTML += text.charAt(i);
+            i++;
+            if (i >= text.length) clearInterval(typeInterval);
+        }, 20); // Fast typing pace
+    }
+
+    // Audio cue for step loading
+    if (typeof audioCtx !== 'undefined' && !audioMuted && masterGain) {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(800, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(100, audioCtx.currentTime + 0.1);
+        gain.gain.setValueAtTime(0.04, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
+        osc.connect(gain);
+        gain.connect(masterGain);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.1);
+    }
+}
+
+function nextStep() {
+    // Validate current step
+    const stepEl = document.querySelector(`.form-step[data-step="${currentStep}"]`);
+    const inputs = stepEl.querySelectorAll('input:required, textarea:required');
+    let valid = true;
+    inputs.forEach(inp => {
+        if (inp.type === 'radio') {
+            const group = stepEl.querySelectorAll(`input[name="${inp.name}"]`);
+            if (!Array.from(group).some(r => r.checked)) valid = false;
+        } else if (!inp.value.trim()) {
+            valid = false;
+        }
+    });
+
+    if (!valid) {
+        // Validation Error Glitch!
+        stepEl.style.animation = 'none';
+        void stepEl.offsetWidth;
+        stepEl.style.animation = 'glitch-1 0.3s';
+
+        if (typeof audioCtx !== 'undefined' && !audioMuted && masterGain) {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'square';
+            osc.frequency.setValueAtTime(120, audioCtx.currentTime);
+            gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.2);
+            osc.connect(gain);
+            gain.connect(masterGain);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.2);
+        }
+        return; // Halt progression
+    }
+
+    if (currentStep < totalSteps) {
+        // Visual distortion mask before next step loads
+        const filter = document.getElementById('glitch-displacement');
+        if (filter) {
+            filter.setAttribute('scale', 12);
+            document.getElementById('apply-modal').style.filter = 'url(#crt-glitch)';
+            setTimeout(() => {
+                filter.setAttribute('scale', '0');
+                document.getElementById('apply-modal').style.filter = 'none';
+            }, 120);
+        }
+
+        currentStep++;
+        showStep(currentStep);
+    }
+}
+
+// Global enter key to advance steps inside modal
+document.addEventListener('DOMContentLoaded', () => {
+    const form = document.getElementById('enlist-form');
+    if (form) {
+        form.addEventListener('keydown', function (e) {
+            // Check if user hit enter, not shift+enter if in textarea
+            if (e.key === 'Enter' && !(e.target.tagName.toLowerCase() === 'textarea' && e.shiftKey)) {
+                e.preventDefault();
+                if (currentStep < totalSteps) {
+                    nextStep();
+                } else {
+                    form.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+                }
+            }
+        });
+    }
+
+    // Connect custom radio buttons visual
+    document.querySelectorAll('.faction-option input').forEach(inp => {
+        inp.addEventListener('change', (e) => {
+            document.querySelectorAll('.f-box').forEach(box => box.innerText = '[ ]');
+            const checkedBox = e.target.parentElement.querySelector('.f-box');
+            if (checkedBox) checkedBox.innerText = '[X]';
+        });
+    });
+});
+
+// Open Modal Logic Updated
 const openModal = () => {
+    currentStep = 1;
+    const form = document.getElementById('enlist-form');
+    form.reset();
+    document.querySelectorAll('.f-box').forEach(box => box.innerText = '[ ]');
+
     document.getElementById('apply-modal').style.display = 'flex';
+    form.style.display = 'block';
+    document.getElementById('success-state').style.display = 'none';
+
+    showStep(currentStep);
 };
 
 const closeModal = () => {
@@ -532,19 +673,54 @@ document.getElementById('enlist-form').addEventListener('submit', function (e) {
 });
 
 // Twitter Post Logic
-document.getElementById('tweet-btn').addEventListener('click', () => {
-    // Customize your pre-written tweet here
-    const tweetText = encodeURIComponent("The fiat burned, but I survived. Just enlisted for the @tempocalypse_ Wasteland. \n\nWe stay bearish. ☢️🐻\n\nApply here: https://yourwebsite.com");
+document.getElementById('tweet-btn').addEventListener('click', (e) => {
+    const btn = e.target;
+    const tweetText = encodeURIComponent("The fiat burned, but I survived. Just enlisted for the @tempocalypse_ Wasteland. \n\nWe stay bearish. ☢️🐻\n\nApply here: https://tempocalypse.com");
+    
+    btn.innerHTML = '[ INITIATING API HANDSHAKE... ]';
+    btn.style.pointerEvents = 'none';
+    btn.style.borderColor = 'var(--amber)';
+    btn.style.color = 'var(--amber)';
 
-    // Opens Twitter Intent URL in a new tab
-    window.open(`https://twitter.com/intent/tweet?text=${tweetText}`, '_blank');
-
-    // Close modal after they click
-    setTimeout(closeModal, 1000);
+    setTimeout(() => {
+        window.open(`https://twitter.com/intent/tweet?text=${tweetText}`, '_blank');
+        
+        btn.innerHTML = '[ AWAITING NETWORK VALIDATION... ]';
+        btn.style.borderColor = 'var(--cyan)';
+        btn.style.color = 'var(--cyan)';
+        
+        // Fake verifying they tweeted
+        setTimeout(() => {
+            btn.style.display = 'none';
+            const successMsg = document.getElementById('final-validation-msg');
+            if(successMsg) successMsg.style.display = 'block';
+            
+            // Audio success cue
+            if (typeof audioCtx !== 'undefined' && !audioMuted && masterGain) {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(400, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(800, audioCtx.currentTime + 0.2);
+                gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.3);
+                osc.connect(gain);
+                gain.connect(masterGain);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.3);
+            }
+            
+            setTimeout(closeModal, 4000);
+        }, 10000);
+    }, 800);
 });
 
 // ─── GLOBAL SVG GLITCH ───
 setInterval(() => {
+    // If the modal is open, suppress global glitch to prevent form distortion
+    const modal = document.getElementById('apply-modal');
+    if (modal && modal.style.display !== 'none' && modal.style.display !== '') return;
+
     const filter = document.getElementById('glitch-displacement');
     if (!filter) return;
     filter.setAttribute('scale', Math.random() * 20 + 10);

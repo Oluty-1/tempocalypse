@@ -490,7 +490,7 @@ const handleApplyClick = (btn) => {
         btn.innerHTML = '[ CLEARANCE GRANTED ]';
         btn.style.borderColor = 'var(--green)';
         btn.style.color = 'var(--green)';
-        
+
         setTimeout(() => {
             btn.innerHTML = originalText;
             btn.classList.remove('locked');
@@ -511,34 +511,34 @@ const closeModal = () => {
 };
 
 // Handle Form Submission to Netlify
-document.getElementById('enlist-form').addEventListener('submit', function(e) {
+document.getElementById('enlist-form').addEventListener('submit', function (e) {
     e.preventDefault(); // Stop page reload
-    
+
     const myForm = e.target;
     const formData = new FormData(myForm);
 
     // Send data to Netlify Forms invisibly
     fetch("/", {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: new URLSearchParams(formData).toString(),
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: new URLSearchParams(formData).toString(),
     })
-    .then(() => {
-        // Hide form, show Twitter prompt
-        myForm.style.display = 'none';
-        document.getElementById('success-state').style.display = 'block';
-    })
-    .catch((error) => alert('TRANSMISSION FAILED: ' + error));
+        .then(() => {
+            // Hide form, show Twitter prompt
+            myForm.style.display = 'none';
+            document.getElementById('success-state').style.display = 'block';
+        })
+        .catch((error) => alert('TRANSMISSION FAILED: ' + error));
 });
 
 // Twitter Post Logic
 document.getElementById('tweet-btn').addEventListener('click', () => {
     // Customize your pre-written tweet here
     const tweetText = encodeURIComponent("The fiat burned, but I survived. Just enlisted for the @tempocalypse_ Wasteland. \n\nWe stay bearish. ☢️🐻\n\nApply here: https://yourwebsite.com");
-    
+
     // Opens Twitter Intent URL in a new tab
     window.open(`https://twitter.com/intent/tweet?text=${tweetText}`, '_blank');
-    
+
     // Close modal after they click
     setTimeout(closeModal, 1000);
 });
@@ -591,3 +591,4 @@ if (window.matchMedia('(hover: hover)').matches) {
         });
     });
 }
+

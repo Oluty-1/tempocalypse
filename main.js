@@ -437,20 +437,18 @@ const handleApplyClick = (btn) => {
     btn.classList.add('locked');
 
     const rejections = [
-        '[ FATAL ERROR: TRACES OF FIAT DETECTED. ]',
-        '[ ACCESS DENIED: INSUFFICIENT SCRAP. ]',
-        '[ SIGNAL LOST. SECURE YOUR BUNKER. ]',
-        '[ PATIENCE, SURVIVOR. GATE IS LOCKED. ]',
-        '[ CLEARANCE REJECTED. SURVIVE LONGER. ]',
-        '[ GATE CLOSED. THE BULLS ARE EXTINCT. ]',
-        '[ BIO-SCAN FAILED: RADIATION LEVELS CRITICAL. ]',
-        '[ TEMPO NODE REFUSED CONNECTION. ]'
+        '[ SCANNING VITALS... ]',
+        '[ DECRYPTING WALLET... ]',
+        '[ VERIFYING SCRAP LOGS... ]',
+        '[ BYPASSING FIREWALL... ]',
+        '[ CHECKING RADIATION LEVELS... ]',
+        '[ ESTABLISHING TEMPO UPLINK... ]'
     ];
     const randomMsg = rejections[Math.floor(Math.random() * rejections.length)];
 
     btn.innerHTML = randomMsg;
-    btn.style.borderColor = 'var(--amber)';
-    btn.style.color = 'var(--amber)';
+    btn.style.borderColor = 'var(--cyan)';
+    btn.style.color = 'var(--cyan)';
 
     const filter = document.getElementById('glitch-displacement');
     if (filter) {
@@ -489,12 +487,61 @@ const handleApplyClick = (btn) => {
     }
 
     setTimeout(() => {
-        btn.innerHTML = originalText;
-        btn.classList.remove('locked');
-        btn.style.borderColor = '';
-        btn.style.color = '';
-    }, 2800);
+        btn.innerHTML = '[ CLEARANCE GRANTED ]';
+        btn.style.borderColor = 'var(--green)';
+        btn.style.color = 'var(--green)';
+        
+        setTimeout(() => {
+            btn.innerHTML = originalText;
+            btn.classList.remove('locked');
+            btn.style.borderColor = '';
+            btn.style.color = '';
+            openModal();
+        }, 1000);
+    }, 1800);
 };
+
+// Open Modal Logic
+const openModal = () => {
+    document.getElementById('apply-modal').style.display = 'flex';
+};
+
+const closeModal = () => {
+    document.getElementById('apply-modal').style.display = 'none';
+};
+
+// Handle Form Submission to Netlify
+document.getElementById('enlist-form').addEventListener('submit', function(e) {
+    e.preventDefault(); // Stop page reload
+    
+    const myForm = e.target;
+    const formData = new FormData(myForm);
+
+    // Send data to Netlify Forms invisibly
+    fetch("/", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams(formData).toString(),
+    })
+    .then(() => {
+        // Hide form, show Twitter prompt
+        myForm.style.display = 'none';
+        document.getElementById('success-state').style.display = 'block';
+    })
+    .catch((error) => alert('TRANSMISSION FAILED: ' + error));
+});
+
+// Twitter Post Logic
+document.getElementById('tweet-btn').addEventListener('click', () => {
+    // Customize your pre-written tweet here
+    const tweetText = encodeURIComponent("The fiat burned, but I survived. Just enlisted for the @tempocalypse_ Wasteland. \n\nWe stay bearish. ☢️🐻\n\nApply here: https://yourwebsite.com");
+    
+    // Opens Twitter Intent URL in a new tab
+    window.open(`https://twitter.com/intent/tweet?text=${tweetText}`, '_blank');
+    
+    // Close modal after they click
+    setTimeout(closeModal, 1000);
+});
 
 // ─── GLOBAL SVG GLITCH ───
 setInterval(() => {

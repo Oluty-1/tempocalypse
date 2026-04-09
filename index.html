@@ -208,6 +208,53 @@
         </div>
     </div>
 
+    <!-- APPLICATION MODAL -->
+    <div id="apply-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-content section-box">
+            <div class="section-label">// ENLISTMENT PROTOCOL //</div>
+            <h3>&gt; Submit Scrap_</h3>
+            
+            <form id="enlist-form" name="wasteland-app" data-netlify="true">
+                <input type="hidden" name="form-name" value="wasteland-app" />
+
+                <div class="input-group">
+                    <label>X (Twitter) Handle</label>
+                    <input type="text" name="x_handle" placeholder="@survivor" required>
+                </div>
+
+                <div class="input-group">
+                    <label>Wallet Address (ERC-20)</label>
+                    <input type="text" name="wallet" placeholder="0x..." required>
+                </div>
+
+                <div class="input-group">
+                    <label>Choose Faction</label>
+                    <select name="faction" required>
+                        <option value="" disabled selected>[ SELECT FACTION ]</option>
+                        <option value="raider">Scrap Raiders</option>
+                        <option value="dev">Rusted Devs</option>
+                        <option value="rebel">Fiat Rebels</option>
+                        <option value="hoarder">Perma-Bear Hoarders</option>
+                    </select>
+                </div>
+
+                <div class="input-group">
+                    <label>Bear Market Survival Story</label>
+                    <textarea name="story" rows="3" placeholder="How much did you lose in the crash?..." required></textarea>
+                </div>
+
+                <button type="submit" class="btn danger">[ TRANSMIT APPLICATION ]</button>
+                <button type="button" class="btn" onclick="closeModal()">[ ABORT ]</button>
+            </form>
+
+            <div id="success-state" style="display: none; text-align: center;">
+                <h3 style="color: var(--amber);">TRANSMISSION RECEIVED</h3>
+                <p>Data logged to the Tempo chain. Now, prove you aren't a fed. Broadcast your survival to the network.</p>
+                <button class="btn" id="tweet-btn">[ BROADCAST TO X ]</button>
+            </div>
+        </div>
+    </div>
+
     <!-- SVG DISPLACEMENT FILTER FOR CRT GLITCH -->
     <svg style="display: none;">
         <defs>

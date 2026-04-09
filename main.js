@@ -504,6 +504,60 @@ const handleApplyClick = (btn) => {
 // ─── STEP ENGINE FOR ENLISTMENT MODAL ───
 let currentStep = 1;
 const totalSteps = 4;
+let applyBootTimeouts = [];
+
+const clearApplyBoot = () => {
+    applyBootTimeouts.forEach((id) => clearTimeout(id));
+    applyBootTimeouts = [];
+};
+
+const pushApplyLog = (message) => {
+    const el = document.getElementById('apply-live-log');
+    if (!el) return;
+    const line = document.createElement('div');
+    line.className = 'apply-log-line';
+    const ts = new Date().toISOString().slice(11, 19);
+    line.textContent = `[${ts}] ${message}`;
+    el.appendChild(line);
+    el.scrollTop = el.scrollHeight;
+};
+
+const playApplyStepCue = () => {
+    if (!audioCtx || audioMuted || !masterGain) return;
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(660, audioCtx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(440, audioCtx.currentTime + 0.08);
+    gain.gain.setValueAtTime(0, audioCtx.currentTime);
+    gain.gain.linearRampToValueAtTime(0.045, audioCtx.currentTime + 0.012);
+    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
+    osc.connect(gain);
+    gain.connect(masterGain);
+    osc.start();
+    osc.stop(audioCtx.currentTime + 0.12);
+};
+
+const APPLY_PHASE_BANNER = {
+    1: 'PHASE 01 — CALLSIGN',
+    2: 'PHASE 02 — KEY REGISTRY',
+    3: 'PHASE 03 — FACTION OATH',
+    4: 'PHASE 04 — TRAUMA ARCHIVE',
+};
+
+const APPLY_UPLINK_STATE = {
+    1: 'RECEIVING',
+    2: 'VERIFY_KEYS',
+    3: 'OATH_SEALED',
+    4: 'TRANSMIT_ARMED',
+};
+
+const APPLY_STEP_LOG = {
+    1: 'phase_01 :: callsign required',
+    2: 'phase_02 :: wallet ingest',
+    3: 'phase_03 :: faction oath',
+    4: 'phase_04 :: trauma archive',
+};
 
 function showStep(step) {
     document.querySelectorAll('.form-step').forEach(el => {
@@ -517,7 +571,30 @@ function showStep(step) {
     void activeEl.offsetWidth;
     activeEl.classList.add('active');
 
-    document.getElementById('step-count').innerText = `${step} / ${totalSteps}`;
+    const stepCount = document.getElementById('step-count');
+    if (stepCount) {
+        stepCount.innerText = `${String(step).padStart(2, '0')} / ${String(totalSteps).padStart(2, '0')}`;
+    }
+
+    const banner = document.getElementById('apply-phase-banner');
+    if (banner) banner.textContent = APPLY_PHASE_BANNER[step] || '';
+
+    const uplink = document.getElementById('apply-uplink-state');
+    if (uplink) uplink.textContent = APPLY_UPLINK_STATE[step] || 'OPEN';
+
+    const rad = document.getElementById('apply-rad-fill');
+    if (rad) rad.style.width = `${Math.min(92, 16 + step * 22)}%`;
+
+    const fill = document.getElementById('apply-progress-fill');
+    if (fill) fill.style.width = `${(step / totalSteps) * 100}%`;
+
+    document.querySelectorAll('#apply-phases li').forEach((li) => {
+        const m = parseInt(li.getAttribute('data-step-marker'), 10);
+        li.classList.toggle('is-active', step === m);
+        li.classList.toggle('is-done', step > m);
+    });
+
+    if (APPLY_STEP_LOG[step]) pushApplyLog(APPLY_STEP_LOG[step]);
 
     // Auto-focus active input
     const input = activeEl.querySelector('input, textarea');
@@ -535,23 +612,10 @@ function showStep(step) {
             prompt.innerHTML += text.charAt(i);
             i++;
             if (i >= text.length) clearInterval(typeInterval);
-        }, 20); // Fast typing pace
+        }, 18);
     }
 
-    // Audio cue for step loading
-    if (typeof audioCtx !== 'undefined' && !audioMuted && masterGain) {
-        const osc = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
-        osc.type = 'sawtooth';
-        osc.frequency.setValueAtTime(800, audioCtx.currentTime);
-        osc.frequency.exponentialRampToValueAtTime(100, audioCtx.currentTime + 0.1);
-        gain.gain.setValueAtTime(0.04, audioCtx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
-        osc.connect(gain);
-        gain.connect(masterGain);
-        osc.start();
-        osc.stop(audioCtx.currentTime + 0.1);
-    }
+    playApplyStepCue();
 }
 
 function nextStep() {
@@ -569,37 +633,35 @@ function nextStep() {
     });
 
     if (!valid) {
-        // Validation Error Glitch!
-        stepEl.style.animation = 'none';
+        stepEl.classList.remove('form-step--shake');
         void stepEl.offsetWidth;
-        stepEl.style.animation = 'glitch-1 0.3s';
+        stepEl.classList.add('form-step--shake');
+        setTimeout(() => stepEl.classList.remove('form-step--shake'), 480);
+        pushApplyLog('ERR :: field validation failed — complete required data');
 
         if (typeof audioCtx !== 'undefined' && !audioMuted && masterGain) {
             const osc = audioCtx.createOscillator();
             const gain = audioCtx.createGain();
             osc.type = 'square';
             osc.frequency.setValueAtTime(120, audioCtx.currentTime);
-            gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.2);
+            gain.gain.setValueAtTime(0.06, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.18);
             osc.connect(gain);
             gain.connect(masterGain);
             osc.start();
-            osc.stop(audioCtx.currentTime + 0.2);
+            osc.stop(audioCtx.currentTime + 0.18);
         }
         return; // Halt progression
     }
 
     if (currentStep < totalSteps) {
-        // Visual distortion mask before next step loads
-        const filter = document.getElementById('glitch-displacement');
-        if (filter) {
-            filter.setAttribute('scale', 12);
-            document.getElementById('apply-modal').style.filter = 'url(#crt-glitch)';
-            setTimeout(() => {
-                filter.setAttribute('scale', '0');
-                document.getElementById('apply-modal').style.filter = 'none';
-            }, 120);
+        const shell = document.getElementById('modal-box');
+        if (shell) {
+            shell.classList.remove('apply-flash');
+            void shell.offsetWidth;
+            shell.classList.add('apply-flash');
         }
+        pushApplyLog('handoff :: advancing phase');
 
         currentStep++;
         showStep(currentStep);
@@ -635,19 +697,46 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Open Modal Logic Updated
 const openModal = () => {
+    clearApplyBoot();
     currentStep = 1;
     const form = document.getElementById('enlist-form');
     form.reset();
     document.querySelectorAll('.f-box').forEach(box => box.innerText = '[ ]');
 
+    const logEl = document.getElementById('apply-live-log');
+    if (logEl) logEl.innerHTML = '';
+
     document.getElementById('apply-modal').style.display = 'flex';
     form.style.display = 'block';
     document.getElementById('success-state').style.display = 'none';
 
+    const phaseBanner = document.getElementById('apply-phase-banner');
+    if (phaseBanner) phaseBanner.style.display = '';
+
     showStep(currentStep);
+
+    const uplinkEl = document.getElementById('apply-uplink-state');
+    if (uplinkEl) uplinkEl.textContent = 'NEGOTIATING…';
+    applyBootTimeouts.push(setTimeout(() => {
+        const u = document.getElementById('apply-uplink-state');
+        if (u) u.textContent = APPLY_UPLINK_STATE[currentStep] || 'OPEN';
+    }, 480));
+
+    const bootLines = [
+        { delay: 60, msg: 'uplink_req :: enlistment v2' },
+        { delay: 420, msg: 'handshake :: tempo-node ACK' },
+        { delay: 780, msg: 'trace_buffer :: mounted (volatile)' },
+        { delay: 1140, msg: 'awaiting operator input…' },
+    ];
+    bootLines.forEach(({ delay, msg }) => {
+        applyBootTimeouts.push(setTimeout(() => pushApplyLog(msg), delay));
+    });
 };
 
 const closeModal = () => {
+    clearApplyBoot();
+    const shell = document.getElementById('modal-box');
+    if (shell) shell.classList.remove('apply-flash');
     document.getElementById('apply-modal').style.display = 'none';
 };
 
@@ -665,8 +754,19 @@ document.getElementById('enlist-form').addEventListener('submit', function (e) {
         body: new URLSearchParams(formData).toString(),
     })
         .then(() => {
+            pushApplyLog('tx :: packet sealed — awaiting timeline broadcast');
+            const shell = document.getElementById('modal-box');
+            if (shell) {
+                shell.classList.remove('apply-flash');
+                void shell.offsetWidth;
+                shell.classList.add('apply-flash');
+            }
+            const u = document.getElementById('apply-uplink-state');
+            if (u) u.textContent = 'QUEUED';
             // Hide form, show Twitter prompt
             myForm.style.display = 'none';
+            const phaseBannerEl = document.getElementById('apply-phase-banner');
+            if (phaseBannerEl) phaseBannerEl.style.display = 'none';
             document.getElementById('success-state').style.display = 'block';
         })
         .catch((error) => alert('TRANSMISSION FAILED: ' + error));
@@ -674,7 +774,7 @@ document.getElementById('enlist-form').addEventListener('submit', function (e) {
 
 // Twitter Post Logic
 document.getElementById('tweet-btn').addEventListener('click', (e) => {
-    const btn = e.target;
+    const btn = e.currentTarget;
     const tweetText = encodeURIComponent("The fiat burned, but I survived. Just enlisted for the @tempocalypse_ Wasteland. \n\nWe stay bearish. ☢️🐻\n\nApply here: https://tempocalypse.com");
     
     btn.innerHTML = '[ INITIATING API HANDSHAKE... ]';

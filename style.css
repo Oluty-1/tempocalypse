@@ -1117,7 +1117,9 @@ footer {
 
 @media (max-width: 480px) {
     h1 {
-        letter-spacing: 2px;
+        font-size: clamp(2rem, 10vw, 3.2rem);
+        letter-spacing: 1px;
+        overflow-wrap: anywhere;
     }
 
     .btn-group {

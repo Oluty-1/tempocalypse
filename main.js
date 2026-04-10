@@ -2,6 +2,11 @@ const textToType = `SYSTEM FAILURE DETECTED...\nMARKETS: DECEASED.\nBULLS: EXTIN
 const typedElement = document.getElementById('typed');
 let index = 0;
 
+const isCoarsePointer = window.matchMedia?.('(hover: none) and (pointer: coarse)')?.matches ?? false;
+const isSmallScreen = window.matchMedia?.('(max-width: 768px)')?.matches ?? (window.innerWidth <= 768);
+const isMobileLike = isCoarsePointer || isSmallScreen;
+const prefersReducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches ?? false;
+
 function typeWriter() {
     if (index < textToType.length) {
         if (textToType.charAt(index) === '\n') {
@@ -117,17 +122,24 @@ function initThreeJS() {
     const container = document.getElementById('webgl-container');
     if (!container || typeof THREE === 'undefined') return;
 
+    const lowPowerMode = prefersReducedMotion || isMobileLike;
+
     const scene = new THREE.Scene();
     scene.fog = new THREE.FogExp2(0x030803, 0.0015);
 
     const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
     const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setPixelRatio(lowPowerMode ? 1 : Math.min(window.devicePixelRatio, 2));
     container.appendChild(renderer.domElement);
 
     // ─── MASSIVE CENTRAL ARTIFACT ───
-    const geom = new THREE.TorusKnotGeometry(15, 3.5, 120, 20);
+    const geom = new THREE.TorusKnotGeometry(
+        15,
+        3.5,
+        lowPowerMode ? 64 : 120,
+        lowPowerMode ? 12 : 20
+    );
     const mat = new THREE.MeshBasicMaterial({
         color: 0x39ff14,
         wireframe: true,
@@ -140,14 +152,14 @@ function initThreeJS() {
 
     // ─── 3D DUST PARTICLES ───
     const partGeom = new THREE.BufferGeometry();
-    const partCount = 3000;
+    const partCount = lowPowerMode ? 1200 : 3000;
     const posArray = new Float32Array(partCount * 3);
     for (let i = 0; i < partCount * 3; i++) {
         posArray[i] = (Math.random() - 0.5) * 160;
     }
     partGeom.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
     const partMat = new THREE.PointsMaterial({
-        size: 0.15,
+        size: lowPowerMode ? 0.12 : 0.15,
         color: 0x39ff14,
         transparent: true,
         opacity: 0.6,
@@ -180,21 +192,31 @@ function initThreeJS() {
         camera.aspect = window.innerWidth / window.innerHeight;
         camera.updateProjectionMatrix();
         renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(lowPowerMode ? 1 : Math.min(window.devicePixelRatio, 2));
     });
 
     const clock = new THREE.Clock();
+    let lastRender = 0;
     const animate = () => {
         requestAnimationFrame(animate);
         const time = clock.getElapsedTime();
+        const now = performance.now();
 
-        mesh.rotation.x += 0.002;
-        mesh.rotation.y += 0.003;
+        // Cap FPS on mobile-like / reduced motion to avoid jank + battery drain.
+        if (lowPowerMode) {
+            const minFrameMs = 1000 / 30;
+            if (now - lastRender < minFrameMs) return;
+            lastRender = now;
+        }
 
-        particles.rotation.y = time * 0.03;
-        particles.rotation.x = time * 0.01;
+        mesh.rotation.x += lowPowerMode ? 0.0012 : 0.002;
+        mesh.rotation.y += lowPowerMode ? 0.0018 : 0.003;
 
-        camera.position.x += (mouseX * 0.08 - camera.position.x) * 0.05;
-        camera.position.y += (-mouseY * 0.08 - camera.position.y) * 0.05;
+        particles.rotation.y = time * (lowPowerMode ? 0.02 : 0.03);
+        particles.rotation.x = time * (lowPowerMode ? 0.006 : 0.01);
+
+        camera.position.x += (mouseX * (lowPowerMode ? 0.05 : 0.08) - camera.position.x) * (lowPowerMode ? 0.04 : 0.05);
+        camera.position.y += (-mouseY * (lowPowerMode ? 0.05 : 0.08) - camera.position.y) * (lowPowerMode ? 0.04 : 0.05);
         camera.lookAt(scene.position);
 
         renderer.render(scene, camera);
@@ -823,16 +845,18 @@ setInterval(() => {
     // If the modal is open, suppress global glitch to prevent form distortion
     const modal = document.getElementById('apply-modal');
     if (modal && modal.style.display !== 'none' && modal.style.display !== '') return;
+    if (prefersReducedMotion) return;
 
     const filter = document.getElementById('glitch-displacement');
     if (!filter) return;
-    filter.setAttribute('scale', Math.random() * 20 + 10);
+    const scale = isMobileLike ? (Math.random() * 10 + 6) : (Math.random() * 20 + 10);
+    filter.setAttribute('scale', scale);
     document.body.style.filter = 'url(#crt-glitch)';
     setTimeout(() => {
         filter.setAttribute('scale', '0');
         document.body.style.filter = 'none';
-    }, 100 + Math.random() * 200);
-}, 6000 + Math.random() * 8000);
+    }, (isMobileLike ? 80 : 100) + Math.random() * (isMobileLike ? 120 : 200));
+}, (isMobileLike ? 9000 : 6000) + Math.random() * (isMobileLike ? 11000 : 8000));
 
 // ─── CRYPTOGRAPHIC DECRYPTION ───
 const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%&*XØŒ";

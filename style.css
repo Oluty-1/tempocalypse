@@ -19,6 +19,7 @@
 
 html {
     scroll-behavior: smooth;
+    overflow-x: hidden;
 }
 
 body {
@@ -142,6 +143,7 @@ body::after {
     animation: phosphor 6s ease-in-out infinite;
     position: relative;
     z-index: 2;
+    overflow-x: hidden;
 }
 
 #loading-screen {
@@ -1114,6 +1116,10 @@ footer {
 }
 
 @media (max-width: 480px) {
+    h1 {
+        letter-spacing: 2px;
+    }
+
     .btn-group {
         flex-direction: column;
         width: 100%;
@@ -1134,6 +1140,10 @@ footer {
     .trait-grid {
         gap: 8px;
     }
+
+    .footer-logo {
+        letter-spacing: 4px;
+    }
 }
 
 .audio-btn {
@@ -1153,6 +1163,46 @@ footer {
     background: rgba(0, 10, 0, 0.8);
 }
 
+@media (max-width: 768px) {
+    /* Backdrop blur is expensive on mobile GPUs */
+    #ticker-wrap {
+        backdrop-filter: none;
+    }
+
+    .audio-btn {
+        backdrop-filter: none;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    html {
+        scroll-behavior: auto;
+    }
+
+    body::after {
+        animation: none;
+    }
+
+    #page-wrap {
+        animation: none;
+    }
+
+    #ticker-inner {
+        animation: none;
+    }
+
+    .radiation-ring {
+        animation: none;
+    }
+
+    .apply-scanlines {
+        display: none;
+    }
+
+    .apply-ping i {
+        animation: none;
+    }
+}
 .audio-btn:active {
     transform: none;
 }

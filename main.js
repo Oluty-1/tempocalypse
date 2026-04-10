@@ -706,6 +706,8 @@ const openModal = () => {
     const logEl = document.getElementById('apply-live-log');
     if (logEl) logEl.innerHTML = '';
 
+    document.body.classList.add('modal-open');
+
     document.getElementById('apply-modal').style.display = 'flex';
     form.style.display = 'block';
     document.getElementById('success-state').style.display = 'none';
@@ -737,6 +739,7 @@ const closeModal = () => {
     clearApplyBoot();
     const shell = document.getElementById('modal-box');
     if (shell) shell.classList.remove('apply-flash');
+    document.body.classList.remove('modal-open');
     document.getElementById('apply-modal').style.display = 'none';
 };
 

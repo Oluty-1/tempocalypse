@@ -618,9 +618,10 @@ function showStep(step) {
 
     if (APPLY_STEP_LOG[step]) pushApplyLog(APPLY_STEP_LOG[step]);
 
-    // Auto-focus active input
+    // Auto-focus: skip on touch phones — opening the keyboard shrinks the viewport and
+    // shoves the modal off-screen. Users tap the field when ready (better mobile UX).
     const input = activeEl.querySelector('input, textarea');
-    if (input) {
+    if (input && !isMobileLike) {
         setTimeout(() => input.focus(), 50);
     }
 
@@ -738,6 +739,11 @@ const openModal = () => {
     if (phaseBanner) phaseBanner.style.display = '';
 
     showStep(currentStep);
+
+    const shell = document.getElementById('modal-box');
+    if (shell && isMobileLike) {
+        shell.scrollTop = 0;
+    }
 
     const uplinkEl = document.getElementById('apply-uplink-state');
     if (uplinkEl) uplinkEl.textContent = 'NEGOTIATING…';

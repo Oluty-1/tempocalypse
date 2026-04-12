@@ -1786,26 +1786,119 @@ footer {
 }
 
 @media (max-width: 720px) {
+    /* Mobile / narrow: one compact column, keyboard-friendly, no full-viewport overlay scroll */
+    .apply-overlay {
+        align-items: stretch;
+        justify-content: flex-start;
+        overflow-y: hidden;
+        padding: calc(10px + env(safe-area-inset-top, 0px)) calc(10px + env(safe-area-inset-right, 0px)) calc(10px + env(safe-area-inset-bottom, 0px)) calc(10px + env(safe-area-inset-left, 0px));
+    }
+
+    .apply-overlay .apply-vignette,
+    .apply-overlay .apply-scanlines {
+        display: none;
+    }
+
+    .apply-shell {
+        margin: 0 auto;
+        max-height: min(88vh, calc(100vh - 24px));
+        overflow-y: auto;
+        overflow-x: hidden;
+        overscroll-behavior: contain;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    @supports (height: 100dvh) {
+        .apply-shell {
+            max-height: min(88dvh, calc(100svh - 24px));
+        }
+    }
+
+    .apply-corners {
+        display: none;
+    }
+
+    .apply-tagline {
+        display: none;
+    }
+
+    .apply-header {
+        padding-right: 44px;
+        margin-bottom: 14px;
+        gap: 12px;
+    }
+
+    .apply-title {
+        font-size: clamp(0.85rem, 3.8vw, 1.1rem);
+    }
+
+    .apply-header-right {
+        flex-direction: row;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: flex-start;
+        gap: 10px 16px;
+        width: 100%;
+        min-width: 0;
+    }
+
+    .apply-rad-meter {
+        max-width: 140px;
+    }
+
+    .apply-progress-block {
+        margin-bottom: 12px;
+    }
+
+    .apply-phases {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 4px;
+        font-size: 0.52rem;
+    }
+
+    .apply-phases li {
+        padding: 6px 2px;
+    }
+
+    .apply-phase-num {
+        font-size: 0.95rem;
+        margin-bottom: 2px;
+    }
+
+    .apply-phase-banner {
+        margin-bottom: 10px;
+        font-size: 0.58rem;
+        letter-spacing: 0.18em;
+    }
+
     .apply-body {
         grid-template-columns: 1fr;
     }
 
+    /* Trace log removed on small screens — saves vertical space; desktop keeps the “experience” */
     .apply-trace {
-        max-height: 140px;
-        order: -1;
+        display: none;
     }
 
-    .apply-phases {
-        grid-template-columns: repeat(2, 1fr);
+    .step-flavor {
+        display: none;
     }
 
-    .apply-header {
-        padding-right: 0;
+    .step-prompt {
+        font-size: clamp(1rem, 3.6vw, 1.2rem);
+        margin-bottom: 12px;
+        min-height: 0;
     }
 
-    .apply-header-right {
-        align-items: flex-start;
-        width: 100%;
+    .apply-main .modal-footer {
+        position: sticky;
+        bottom: 0;
+        margin-top: 16px;
+        padding-top: 12px;
+        padding-bottom: 4px;
+        background: linear-gradient(180deg, transparent, rgba(0, 6, 2, 0.96) 28%, rgba(0, 6, 2, 0.98) 100%);
+        border-top-color: rgba(57, 255, 20, 0.2);
+        z-index: 2;
     }
 }
 

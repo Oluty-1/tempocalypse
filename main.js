@@ -806,7 +806,7 @@ document.getElementById('enlist-form').addEventListener('submit', function (e) {
 // Twitter Post Logic
 document.getElementById('tweet-btn').addEventListener('click', (e) => {
     const btn = e.currentTarget;
-    const tweetText = encodeURIComponent("The fiat burned, but I survived. Just enlisted for the @tempocalypse_ Wasteland. \n\nWe stay bearish. ☢️🐻\n\nApply here: https://tempocalypse.com");
+    const tweetText = encodeURIComponent("The fiat burned, but I survived. Just enlisted for the @_tempocalypse Wasteland. \n\nWe stay bearish. ☢️🐻\n\nApply here: https://tempocalypse.com");
     
     btn.innerHTML = '[ INITIATING API HANDSHAKE... ]';
     btn.style.pointerEvents = 'none';

@@ -2,6 +2,11 @@ const textToType = `SYSTEM FAILURE DETECTED...\nMARKETS: DECEASED.\nBULLS: EXTIN
 const typedElement = document.getElementById('typed');
 let index = 0;
 
+const isCoarsePointer = window.matchMedia?.('(hover: none) and (pointer: coarse)')?.matches ?? false;
+const isSmallScreen = window.matchMedia?.('(max-width: 768px)')?.matches ?? (window.innerWidth <= 768);
+const isMobileLike = isCoarsePointer || isSmallScreen;
+const prefersReducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches ?? false;
+
 function typeWriter() {
     if (index < textToType.length) {
         if (textToType.charAt(index) === '\n') {
@@ -117,17 +122,24 @@ function initThreeJS() {
     const container = document.getElementById('webgl-container');
     if (!container || typeof THREE === 'undefined') return;
 
+    const lowPowerMode = prefersReducedMotion || isMobileLike;
+
     const scene = new THREE.Scene();
     scene.fog = new THREE.FogExp2(0x030803, 0.0015);
 
     const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
     const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setPixelRatio(lowPowerMode ? 1 : Math.min(window.devicePixelRatio, 2));
     container.appendChild(renderer.domElement);
 
     // ─── MASSIVE CENTRAL ARTIFACT ───
-    const geom = new THREE.TorusKnotGeometry(15, 3.5, 120, 20);
+    const geom = new THREE.TorusKnotGeometry(
+        15,
+        3.5,
+        lowPowerMode ? 64 : 120,
+        lowPowerMode ? 12 : 20
+    );
     const mat = new THREE.MeshBasicMaterial({
         color: 0x39ff14,
         wireframe: true,
@@ -140,14 +152,14 @@ function initThreeJS() {
 
     // ─── 3D DUST PARTICLES ───
     const partGeom = new THREE.BufferGeometry();
-    const partCount = 3000;
+    const partCount = lowPowerMode ? 1200 : 3000;
     const posArray = new Float32Array(partCount * 3);
     for (let i = 0; i < partCount * 3; i++) {
         posArray[i] = (Math.random() - 0.5) * 160;
     }
     partGeom.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
     const partMat = new THREE.PointsMaterial({
-        size: 0.15,
+        size: lowPowerMode ? 0.12 : 0.15,
         color: 0x39ff14,
         transparent: true,
         opacity: 0.6,
@@ -180,21 +192,31 @@ function initThreeJS() {
         camera.aspect = window.innerWidth / window.innerHeight;
         camera.updateProjectionMatrix();
         renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(lowPowerMode ? 1 : Math.min(window.devicePixelRatio, 2));
     });
 
     const clock = new THREE.Clock();
+    let lastRender = 0;
     const animate = () => {
         requestAnimationFrame(animate);
         const time = clock.getElapsedTime();
+        const now = performance.now();
 
-        mesh.rotation.x += 0.002;
-        mesh.rotation.y += 0.003;
+        // Cap FPS on mobile-like / reduced motion to avoid jank + battery drain.
+        if (lowPowerMode) {
+            const minFrameMs = 1000 / 30;
+            if (now - lastRender < minFrameMs) return;
+            lastRender = now;
+        }
 
-        particles.rotation.y = time * 0.03;
-        particles.rotation.x = time * 0.01;
+        mesh.rotation.x += lowPowerMode ? 0.0012 : 0.002;
+        mesh.rotation.y += lowPowerMode ? 0.0018 : 0.003;
 
-        camera.position.x += (mouseX * 0.08 - camera.position.x) * 0.05;
-        camera.position.y += (-mouseY * 0.08 - camera.position.y) * 0.05;
+        particles.rotation.y = time * (lowPowerMode ? 0.02 : 0.03);
+        particles.rotation.x = time * (lowPowerMode ? 0.006 : 0.01);
+
+        camera.position.x += (mouseX * (lowPowerMode ? 0.05 : 0.08) - camera.position.x) * (lowPowerMode ? 0.04 : 0.05);
+        camera.position.y += (-mouseY * (lowPowerMode ? 0.05 : 0.08) - camera.position.y) * (lowPowerMode ? 0.04 : 0.05);
         camera.lookAt(scene.position);
 
         renderer.render(scene, camera);
@@ -437,20 +459,18 @@ const handleApplyClick = (btn) => {
     btn.classList.add('locked');
 
     const rejections = [
-        '[ FATAL ERROR: TRACES OF FIAT DETECTED. ]',
-        '[ ACCESS DENIED: INSUFFICIENT SCRAP. ]',
-        '[ SIGNAL LOST. SECURE YOUR BUNKER. ]',
-        '[ PATIENCE, SURVIVOR. GATE IS LOCKED. ]',
-        '[ CLEARANCE REJECTED. SURVIVE LONGER. ]',
-        '[ GATE CLOSED. THE BULLS ARE EXTINCT. ]',
-        '[ BIO-SCAN FAILED: RADIATION LEVELS CRITICAL. ]',
-        '[ TEMPO NODE REFUSED CONNECTION. ]'
+        '[ SCANNING VITALS... ]',
+        '[ DECRYPTING WALLET... ]',
+        '[ VERIFYING SCRAP LOGS... ]',
+        '[ BYPASSING FIREWALL... ]',
+        '[ CHECKING RADIATION LEVELS... ]',
+        '[ ESTABLISHING TEMPO UPLINK... ]'
     ];
     const randomMsg = rejections[Math.floor(Math.random() * rejections.length)];
 
     btn.innerHTML = randomMsg;
-    btn.style.borderColor = 'var(--amber)';
-    btn.style.color = 'var(--amber)';
+    btn.style.borderColor = 'var(--cyan)';
+    btn.style.color = 'var(--cyan)';
 
     const filter = document.getElementById('glitch-displacement');
     if (filter) {
@@ -489,24 +509,360 @@ const handleApplyClick = (btn) => {
     }
 
     setTimeout(() => {
-        btn.innerHTML = originalText;
-        btn.classList.remove('locked');
-        btn.style.borderColor = '';
-        btn.style.color = '';
-    }, 2800);
+        btn.innerHTML = '[ CLEARANCE GRANTED ]';
+        btn.style.borderColor = 'var(--green)';
+        btn.style.color = 'var(--green)';
+
+        setTimeout(() => {
+            btn.innerHTML = originalText;
+            btn.classList.remove('locked');
+            btn.style.borderColor = '';
+            btn.style.color = '';
+            openModal();
+        }, 1000);
+    }, 1800);
 };
+
+// ─── STEP ENGINE FOR ENLISTMENT MODAL ───
+let currentStep = 1;
+const totalSteps = 4;
+let applyBootTimeouts = [];
+
+const clearApplyBoot = () => {
+    applyBootTimeouts.forEach((id) => clearTimeout(id));
+    applyBootTimeouts = [];
+};
+
+const pushApplyLog = (message) => {
+    const el = document.getElementById('apply-live-log');
+    if (!el) return;
+    const line = document.createElement('div');
+    line.className = 'apply-log-line';
+    const ts = new Date().toISOString().slice(11, 19);
+    line.textContent = `[${ts}] ${message}`;
+    el.appendChild(line);
+    el.scrollTop = el.scrollHeight;
+};
+
+const playApplyStepCue = () => {
+    if (!audioCtx || audioMuted || !masterGain) return;
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(660, audioCtx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(440, audioCtx.currentTime + 0.08);
+    gain.gain.setValueAtTime(0, audioCtx.currentTime);
+    gain.gain.linearRampToValueAtTime(0.045, audioCtx.currentTime + 0.012);
+    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
+    osc.connect(gain);
+    gain.connect(masterGain);
+    osc.start();
+    osc.stop(audioCtx.currentTime + 0.12);
+};
+
+const APPLY_PHASE_BANNER = {
+    1: 'PHASE 01 — CALLSIGN',
+    2: 'PHASE 02 — KEY REGISTRY',
+    3: 'PHASE 03 — FACTION OATH',
+    4: 'PHASE 04 — TRAUMA ARCHIVE',
+};
+
+const APPLY_UPLINK_STATE = {
+    1: 'RECEIVING',
+    2: 'VERIFY_KEYS',
+    3: 'OATH_SEALED',
+    4: 'TRANSMIT_ARMED',
+};
+
+const APPLY_STEP_LOG = {
+    1: 'phase_01 :: callsign required',
+    2: 'phase_02 :: wallet ingest',
+    3: 'phase_03 :: faction oath',
+    4: 'phase_04 :: trauma archive',
+};
+
+function showStep(step) {
+    document.querySelectorAll('.form-step').forEach(el => {
+        el.style.display = 'none';
+        el.classList.remove('active');
+    });
+    const activeEl = document.querySelector(`.form-step[data-step="${step}"]`);
+    activeEl.style.display = 'block';
+
+    // Trigger reflow for boot-up animation
+    void activeEl.offsetWidth;
+    activeEl.classList.add('active');
+
+    const stepCount = document.getElementById('step-count');
+    if (stepCount) {
+        stepCount.innerText = `${String(step).padStart(2, '0')} / ${String(totalSteps).padStart(2, '0')}`;
+    }
+
+    const banner = document.getElementById('apply-phase-banner');
+    if (banner) banner.textContent = APPLY_PHASE_BANNER[step] || '';
+
+    const uplink = document.getElementById('apply-uplink-state');
+    if (uplink) uplink.textContent = APPLY_UPLINK_STATE[step] || 'OPEN';
+
+    const rad = document.getElementById('apply-rad-fill');
+    if (rad) rad.style.width = `${Math.min(92, 16 + step * 22)}%`;
+
+    const fill = document.getElementById('apply-progress-fill');
+    if (fill) fill.style.width = `${(step / totalSteps) * 100}%`;
+
+    document.querySelectorAll('#apply-phases li').forEach((li) => {
+        const m = parseInt(li.getAttribute('data-step-marker'), 10);
+        li.classList.toggle('is-active', step === m);
+        li.classList.toggle('is-done', step > m);
+    });
+
+    if (APPLY_STEP_LOG[step]) pushApplyLog(APPLY_STEP_LOG[step]);
+
+    // Auto-focus: skip on touch phones — opening the keyboard shrinks the viewport and
+    // shoves the modal off-screen. Users tap the field when ready (better mobile UX).
+    const input = activeEl.querySelector('input, textarea');
+    if (input && !isMobileLike) {
+        setTimeout(() => input.focus(), 50);
+    }
+
+    // Typewriter effect for prompt
+    const prompt = activeEl.querySelector('.step-prompt');
+    if (prompt) {
+        const text = prompt.getAttribute('data-text');
+        prompt.innerHTML = '';
+        let i = 0;
+        const typeInterval = setInterval(() => {
+            prompt.innerHTML += text.charAt(i);
+            i++;
+            if (i >= text.length) clearInterval(typeInterval);
+        }, 18);
+    }
+
+    playApplyStepCue();
+}
+
+function nextStep() {
+    // Validate current step
+    const stepEl = document.querySelector(`.form-step[data-step="${currentStep}"]`);
+    const inputs = stepEl.querySelectorAll('input:required, textarea:required');
+    let valid = true;
+    inputs.forEach(inp => {
+        if (inp.type === 'radio') {
+            const group = stepEl.querySelectorAll(`input[name="${inp.name}"]`);
+            if (!Array.from(group).some(r => r.checked)) valid = false;
+        } else if (!inp.value.trim()) {
+            valid = false;
+        }
+    });
+
+    if (!valid) {
+        stepEl.classList.remove('form-step--shake');
+        void stepEl.offsetWidth;
+        stepEl.classList.add('form-step--shake');
+        setTimeout(() => stepEl.classList.remove('form-step--shake'), 480);
+        pushApplyLog('ERR :: field validation failed — complete required data');
+
+        if (typeof audioCtx !== 'undefined' && !audioMuted && masterGain) {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'square';
+            osc.frequency.setValueAtTime(120, audioCtx.currentTime);
+            gain.gain.setValueAtTime(0.06, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.18);
+            osc.connect(gain);
+            gain.connect(masterGain);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.18);
+        }
+        return; // Halt progression
+    }
+
+    if (currentStep < totalSteps) {
+        const shell = document.getElementById('modal-box');
+        if (shell) {
+            shell.classList.remove('apply-flash');
+            void shell.offsetWidth;
+            shell.classList.add('apply-flash');
+        }
+        pushApplyLog('handoff :: advancing phase');
+
+        currentStep++;
+        showStep(currentStep);
+    }
+}
+
+// Global enter key to advance steps inside modal
+document.addEventListener('DOMContentLoaded', () => {
+    const form = document.getElementById('enlist-form');
+    if (form) {
+        form.addEventListener('keydown', function (e) {
+            // Check if user hit enter, not shift+enter if in textarea
+            if (e.key === 'Enter' && !(e.target.tagName.toLowerCase() === 'textarea' && e.shiftKey)) {
+                e.preventDefault();
+                if (currentStep < totalSteps) {
+                    nextStep();
+                } else {
+                    form.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+                }
+            }
+        });
+    }
+
+    // Connect custom radio buttons visual
+    document.querySelectorAll('.faction-option input').forEach(inp => {
+        inp.addEventListener('change', (e) => {
+            document.querySelectorAll('.f-box').forEach(box => box.innerText = '[ ]');
+            const checkedBox = e.target.parentElement.querySelector('.f-box');
+            if (checkedBox) checkedBox.innerText = '[X]';
+        });
+    });
+});
+
+// Open Modal Logic Updated
+const openModal = () => {
+    clearApplyBoot();
+    currentStep = 1;
+    const form = document.getElementById('enlist-form');
+    form.reset();
+    document.querySelectorAll('.f-box').forEach(box => box.innerText = '[ ]');
+
+    const logEl = document.getElementById('apply-live-log');
+    if (logEl) logEl.innerHTML = '';
+
+    document.body.classList.add('modal-open');
+
+    document.getElementById('apply-modal').style.display = 'flex';
+    form.style.display = 'block';
+    document.getElementById('success-state').style.display = 'none';
+
+    const phaseBanner = document.getElementById('apply-phase-banner');
+    if (phaseBanner) phaseBanner.style.display = '';
+
+    showStep(currentStep);
+
+    const shell = document.getElementById('modal-box');
+    if (shell && isMobileLike) {
+        shell.scrollTop = 0;
+    }
+
+    const uplinkEl = document.getElementById('apply-uplink-state');
+    if (uplinkEl) uplinkEl.textContent = 'NEGOTIATING…';
+    applyBootTimeouts.push(setTimeout(() => {
+        const u = document.getElementById('apply-uplink-state');
+        if (u) u.textContent = APPLY_UPLINK_STATE[currentStep] || 'OPEN';
+    }, 480));
+
+    const bootLines = [
+        { delay: 60, msg: 'uplink_req :: enlistment v2' },
+        { delay: 420, msg: 'handshake :: tempo-node ACK' },
+        { delay: 780, msg: 'trace_buffer :: mounted (volatile)' },
+        { delay: 1140, msg: 'awaiting operator input…' },
+    ];
+    bootLines.forEach(({ delay, msg }) => {
+        applyBootTimeouts.push(setTimeout(() => pushApplyLog(msg), delay));
+    });
+};
+
+const closeModal = () => {
+    clearApplyBoot();
+    const shell = document.getElementById('modal-box');
+    if (shell) shell.classList.remove('apply-flash');
+    document.body.classList.remove('modal-open');
+    document.getElementById('apply-modal').style.display = 'none';
+};
+
+// Handle Form Submission to Netlify
+document.getElementById('enlist-form').addEventListener('submit', function (e) {
+    e.preventDefault(); // Stop page reload
+
+    const myForm = e.target;
+    const formData = new FormData(myForm);
+
+    // Send data to Netlify Forms invisibly
+    fetch("/", {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: new URLSearchParams(formData).toString(),
+    })
+        .then(() => {
+            pushApplyLog('tx :: packet sealed — awaiting timeline broadcast');
+            const shell = document.getElementById('modal-box');
+            if (shell) {
+                shell.classList.remove('apply-flash');
+                void shell.offsetWidth;
+                shell.classList.add('apply-flash');
+            }
+            const u = document.getElementById('apply-uplink-state');
+            if (u) u.textContent = 'QUEUED';
+            // Hide form, show Twitter prompt
+            myForm.style.display = 'none';
+            const phaseBannerEl = document.getElementById('apply-phase-banner');
+            if (phaseBannerEl) phaseBannerEl.style.display = 'none';
+            document.getElementById('success-state').style.display = 'block';
+        })
+        .catch((error) => alert('TRANSMISSION FAILED: ' + error));
+});
+
+// Twitter Post Logic
+document.getElementById('tweet-btn').addEventListener('click', (e) => {
+    const btn = e.currentTarget;
+    const tweetText = encodeURIComponent("The fiat burned, but I survived. Just enlisted for the @_tempocalypse Wasteland. \n\nWe stay bearish. ☢️🐻\n\nApply here: https://tempocalypse.com");
+    
+    btn.innerHTML = '[ INITIATING API HANDSHAKE... ]';
+    btn.style.pointerEvents = 'none';
+    btn.style.borderColor = 'var(--amber)';
+    btn.style.color = 'var(--amber)';
+
+    setTimeout(() => {
+        window.open(`https://twitter.com/intent/tweet?text=${tweetText}`, '_blank');
+        
+        btn.innerHTML = '[ AWAITING NETWORK VALIDATION... ]';
+        btn.style.borderColor = 'var(--cyan)';
+        btn.style.color = 'var(--cyan)';
+        
+        // Fake verifying they tweeted
+        setTimeout(() => {
+            btn.style.display = 'none';
+            const successMsg = document.getElementById('final-validation-msg');
+            if(successMsg) successMsg.style.display = 'block';
+            
+            // Audio success cue
+            if (typeof audioCtx !== 'undefined' && !audioMuted && masterGain) {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(400, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(800, audioCtx.currentTime + 0.2);
+                gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.3);
+                osc.connect(gain);
+                gain.connect(masterGain);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.3);
+            }
+            
+            setTimeout(closeModal, 4000);
+        }, 10000);
+    }, 800);
+});
 
 // ─── GLOBAL SVG GLITCH ───
 setInterval(() => {
+    // If the modal is open, suppress global glitch to prevent form distortion
+    const modal = document.getElementById('apply-modal');
+    if (modal && modal.style.display !== 'none' && modal.style.display !== '') return;
+    if (prefersReducedMotion) return;
+
     const filter = document.getElementById('glitch-displacement');
     if (!filter) return;
-    filter.setAttribute('scale', Math.random() * 20 + 10);
+    const scale = isMobileLike ? (Math.random() * 10 + 6) : (Math.random() * 20 + 10);
+    filter.setAttribute('scale', scale);
     document.body.style.filter = 'url(#crt-glitch)';
     setTimeout(() => {
         filter.setAttribute('scale', '0');
         document.body.style.filter = 'none';
-    }, 100 + Math.random() * 200);
-}, 6000 + Math.random() * 8000);
+    }, (isMobileLike ? 80 : 100) + Math.random() * (isMobileLike ? 120 : 200));
+}, (isMobileLike ? 9000 : 6000) + Math.random() * (isMobileLike ? 11000 : 8000));
 
 // ─── CRYPTOGRAPHIC DECRYPTION ───
 const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%&*XØŒ";
@@ -544,3 +900,4 @@ if (window.matchMedia('(hover: hover)').matches) {
         });
     });
 }
+
